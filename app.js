@@ -20,6 +20,20 @@
   function hm(s) { return s.slice(11, 16); }
   function dur(min) { return Math.floor(min / 60) + "h " + String(min % 60).padStart(2, "0") + "m"; }
   function nice(date) { return new Date(date + "T00:00:00Z").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }); }
+  var FI = window.FleetInfo;
+  // aircraft per leg and bag allowance in kg, from the airline's usual fleet and fare rules
+  function extras(o) {
+    var out = { planes: [], bags: null }; if (!FI) return out;
+    var pts = [o.from].concat(o.via || []).concat([o.to]).map(function (c) { return M.airport(c); }), longest = 0, dom = true;
+    for (var i = 0; i < pts.length - 1; i++) {
+      var a = pts[i], b = pts[i + 1]; if (!a || !b) continue;
+      var R = 6371, t = Math.PI / 180, d = 2 * R * Math.asin(Math.sqrt(Math.pow(Math.sin((b.lat - a.lat) * t / 2), 2) + Math.cos(a.lat * t) * Math.cos(b.lat * t) * Math.pow(Math.sin((b.lon - a.lon) * t / 2), 2)));
+      longest = Math.max(longest, d); if (a.country !== b.country) dom = false;
+      var p = FI.aircraft(o.airlineCode, d, a.code + b.code + (o.departs || "").slice(11, 13)); if (p && out.planes.indexOf(p) < 0) out.planes.push(p);
+    }
+    out.bags = FI.bags(o.airlineCode, longest, dom, o.cabin);
+    return out;
+  }
   function hue(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 360; return h; }
   function host(url) { try { return new URL(url).hostname.replace(/^www\./, ""); } catch (e) { return url; } }
   function sitesHtml(list) {
@@ -233,15 +247,16 @@
     list.forEach(function (o, i) {
       var isBest = o.id === cheapest.id, isPicked = picked && picked.id === o.id, hu = hue(o.airlineCode);
       var book = o.bookUrl || o.site || M.links.airline(o.airlineCode);
+      var ex = extras(o);
       h += '<article class="card' + (isBest ? " best" : "") + (isPicked ? " picked" : "") + '" style="animation-delay:' + Math.min(i, 10) * 35 + 'ms">' + (isBest ? '<span class="tag">Lowest fare</span>' : "") +
-        '<div class="row"><div class="carrier"><span class="logo" style="background:hsl(' + hu + ',45%,78%)">' + esc(o.airlineCode) + '</span><div style="min-width:0"><div class="n">' + esc(o.airline) + '</div><div class="m">' + (live && o.flightNo ? esc(o.flightNo) + " · " : "") + esc(o.cabin.replace("_", " ")) + (o.lowcost ? " · low-cost" : "") + "</div></div></div>" +
+        '<div class="row"><div class="carrier"><span class="logo" style="background:hsl(' + hu + ',45%,78%)">' + esc(o.airlineCode) + (FI ? '<img class="al-logo" alt="' + esc(o.airline) + ' logo" loading="lazy" referrerpolicy="no-referrer" data-code="' + esc(o.airlineCode) + '" src="' + FI.logo(o.airlineCode) + '">' : "") + '</span><div style="min-width:0"><div class="n">' + esc(o.airline) + '</div><div class="m">' + (live && o.flightNo ? esc(o.flightNo) + " · " : "") + esc(o.cabin.replace("_", " ")) + (o.lowcost ? " · low-cost" : "") + "</div>" + (ex.planes.length ? '<div class="m ac" title="Aircraft this airline usually flies on ' + (ex.planes.length > 1 ? "these legs" : "this route") + '. The exact plane can change; it is shown when you book.">✈ ' + ex.planes.map(esc).join(" + ") + "</div>" : "") + "</div></div>" +
         '<div class="leg"><div><div class="t">' + hm(o.departs) + '</div><div class="c">' + o.from + '</div></div><div class="path">' + dur(o.durationMin) +
         '<div class="line">' + o.via.map(function (v, k) { return '<i style="left:' + ((k + 1) / (o.via.length + 1)) * 100 + '%"></i>'; }).join("") + "</div>" +
         (o.stops ? o.stops + " stop" + (o.stops > 1 ? "s" : "") + (o.via.length ? " · " + o.via.join(", ") : "") : '<span class="direct">Direct</span>') + '</div><div class="end"><div class="t">' + hm(o.arrives) + '</div><div class="c">' + o.to + (o.arrives.slice(0, 10) !== o.departs.slice(0, 10) ? " +1" : "") + "</div></div></div>" +
         '<div class="pricebox"><div><div class="price">' + money(o.price) + '</div><div class="via">' + (live ? "live fare" : "estimated fare") + (state.q.adults > 1 ? ", " + state.q.adults + " travellers" : "") + '</div></div><div class="acts">' +
         (book ? '<a class="bookln" href="' + esc(book) + '" target="_blank" rel="noopener">Book on ' + esc(host(book)) + " ↗</a>" : "") +
         '<button class="selbtn" data-pick="' + o.id + '">' + (isPicked ? "✓ In trip" : "Add to trip") + '</button></div><div class="acts"><button class="more" data-open="' + o.id + '">' + (state.open[o.id] ? "Hide comparison ▴" : "Compare price ▾") + "</button></div></div></div>" +
-        '<div class="meta"><span>' + esc(o.bags) + "</span></div>" +
+        '<div class="meta">' + (ex.bags ? '<span class="bag" title="Usual allowance per traveller on a standard fare. The cheapest \'light\' fares can leave out the checked bag. Confirm on the airline\'s site before you book.">🎒 Cabin ' + ex.bags.cabin + "</span>" + '<span class="bag' + (ex.bags.checked ? "" : " extra") + '">🧳 ' + (ex.bags.checked ? "Checked " + ex.bags.checked : "Checked bag extra") + "</span>" : "<span>" + esc(o.bags) + "</span>") + "</div>" +
         (state.open[o.id] ? '<div class="expand">' + fareGraph(o, all, live) + '<div class="lbl">Check this fare live on each site (same route and date):</div>' + sitesHtml(M.links.flights(q)) + "</div>" : "") + "</article>";
     });
     $("results").innerHTML = h + "</div>";
