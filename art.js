@@ -26,7 +26,7 @@
     TLV: ["kasbah", "desert", "Jaffa old port"], BEY: ["kasbah", "mist", "Beirut coast"], GYD: ["mosque", "mist", "Baku old city"], TAS: ["mosque", "desert", "Silk Road domes"],
     ALA: ["alps", "nordic", "Tian Shan peaks"],
     DEL: ["taj", "saffron", "Taj Mahal, a day trip from Delhi"], JAI: ["taj", "saffron", "Palaces of Rajasthan"], LKO: ["taj", "saffron", "Mughal domes"], ATQ: ["taj", "saffron", "Golden domes of Punjab"],
-    AMD: ["gateway", "saffron", "Arches of Gujarat"], BOM: ["gateway", "saffron", "Gateway of India"], PNQ: ["gateway", "saffron", "Western Ghats gateway"], GOI: ["overwater", "tropic", "Goa beaches"],
+    AMD: ["gateway", "saffron", "Arches of Gujarat"], BOM: ["gateway", "saffron", "Gateway of India"], NMI: ["gateway", "saffron", "Mumbai's new gateway by the creeks"], PNQ: ["gateway", "saffron", "Western Ghats gateway"], GOI: ["overwater", "tropic", "Goa beaches"],
     COK: ["kerala", "lagoon", "Chinese fishing nets of Kochi"], CCJ: ["kerala", "lagoon", "Malabar coast palms"], TRV: ["kerala", "lagoon", "Kerala backwaters"], IXE: ["kerala", "lagoon", "Konkan coast"],
     CJB: ["kerala", "lagoon", "Nilgiri palms"], MAA: ["thai", "saffron", "Temple towers of Tamil Nadu"], BLR: ["kerala", "lagoon", "Garden city palms"], HYD: ["gateway", "saffron", "Charminar arches"],
     CCU: ["gateway", "mist", "Victoria Memorial"], CMB: ["kerala", "lagoon", "Sri Lankan coast"], KTM: ["himalaya", "nordic", "Himalaya and Boudhanath"],

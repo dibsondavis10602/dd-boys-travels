@@ -37,7 +37,7 @@
     ["CCJ","Kozhikode","India",11.14,75.95,"india"],["TRV","Thiruvananthapuram","India",8.48,76.92,"india"],["HYD","Hyderabad","India",17.23,78.43,"india"],
     ["CCU","Kolkata","India",22.65,88.45,"india"],["GOI","Goa","India",15.38,73.83,"india"],["AMD","Ahmedabad","India",23.07,72.63,"india"],
     ["PNQ","Pune","India",18.58,73.92,"india"],["JAI","Jaipur","India",26.82,75.81,"india"],["LKO","Lucknow","India",26.76,80.89,"india"],
-    ["ATQ","Amritsar","India",31.71,74.80,"india"],["IXE","Mangaluru","India",12.96,74.89,"india"],["CJB","Coimbatore","India",11.03,77.04,"india"],
+    ["NMI","Navi Mumbai","India",18.99,73.07,"india"],["ATQ","Amritsar","India",31.71,74.80,"india"],["IXE","Mangaluru","India",12.96,74.89,"india"],["CJB","Coimbatore","India",11.03,77.04,"india"],
     ["KTM","Kathmandu","Nepal",27.70,85.36,"india"],["DAC","Dhaka","Bangladesh",23.84,90.40,"india"],["KHI","Karachi","Pakistan",24.91,67.16,"india"],
     ["LHE","Lahore","Pakistan",31.52,74.40,"india"],["ISB","Islamabad","Pakistan",33.55,72.83,"india"],
     ["CGK","Jakarta","Indonesia",-6.13,106.66,"sea"],["MNL","Manila","Philippines",14.51,121.02,"sea"],["SGN","Ho Chi Minh City","Vietnam",10.82,106.65,"sea"],
@@ -83,7 +83,7 @@
   MORE.forEach(function (a) { AIRPORTS.push({ code: a[0], city: a[1], country: a[2], lat: a[3], lon: a[4], region: a[5] }); });
 
   var ALIAS = { bangalore: "BLR", bombay: "BOM", cochin: "COK", ernakulam: "COK", calicut: "CCJ", trivandrum: "TRV", madras: "MAA", calcutta: "CCU",
-    "new delhi": "DEL", mangalore: "IXE", nyc: "JFK", "new york city": "JFK", saigon: "SGN", "ho chi minh": "SGN", peking: "PEK", tokyo: "NRT",
+    "new delhi": "DEL", "navi mumbai": "NMI", navimumbai: "NMI", panvel: "NMI", kharghar: "NMI", vashi: "NMI", mangalore: "IXE", nyc: "JFK", "new york city": "JFK", saigon: "SGN", "ho chi minh": "SGN", peking: "PEK", tokyo: "NRT",
     "abu dhabi": "AUH", abudhabi: "AUH", "dubai": "DXB", bahrain: "BAH", kuwait: "KWI", "mecca": "JED", makkah: "JED", "washington dc": "IAD", "washington d.c.": "IAD",
     "sao paulo": "GRU", "rio": "GIG", "cancun": "CUN", "malaga": "AGP", "mallorca": "PMI", "majorca": "PMI", "malta": "MLA", "cyprus": "LCA", "seychelles": "SEZ",
     "fiji": "NAN", "tahiti": "PPT", "maldives": "MLE", "bali": "DPS", "medellin": "MDE", "bogota": "BOG", "brasilia": "BSB", "marrakech": "RAK", "istanbul": "IST",
@@ -110,8 +110,8 @@
     ["FZ","flydubai","flydubai.com","DXB",0.8,1],["G9","Air Arabia","airarabia.com","SHJ",0.7,1],["WY","Oman Air","omanair.com","MCT",1.0],
     ["GF","Gulf Air","gulfair.com","BAH",0.95],["SV","Saudia","saudia.com","JED RUH",0.95],["KU","Kuwait Airways","kuwaitairways.com","KWI",0.95],
     ["RJ","Royal Jordanian","rj.com","AMM",1.0],
-    ["AI","Air India","airindia.com","DEL BOM",0.95],["6E","IndiGo","goindigo.in","DEL BOM BLR HYD",0.75,1],["IX","Air India Express","airindiaexpress.com","COK CCJ TRV IXE",0.7,1],
-    ["QP","Akasa Air","akasaair.com","BOM",0.75,1],["SG","SpiceJet","spicejet.com","DEL",0.72,1],["UL","SriLankan Airlines","srilankan.com","CMB",0.95],
+    ["AI","Air India","airindia.com","DEL BOM",0.95],["6E","IndiGo","goindigo.in","DEL BOM BLR HYD NMI",0.75,1],["IX","Air India Express","airindiaexpress.com","COK CCJ TRV IXE NMI",0.7,1],
+    ["QP","Akasa Air","akasaair.com","BOM NMI",0.75,1],["SG","SpiceJet","spicejet.com","DEL",0.72,1],["UL","SriLankan Airlines","srilankan.com","CMB",0.95],
     ["PK","PIA","piac.com.pk","KHI LHE ISB",0.85],["BG","Biman Bangladesh","biman-airlines.com","DAC",0.85],
     ["BA","British Airways","britishairways.com","LHR",1.25],["LH","Lufthansa","lufthansa.com","FRA MUC",1.2],["AF","Air France","airfrance.com","CDG",1.2],
     ["KL","KLM","klm.com","AMS",1.15],["TK","Turkish Airlines","turkishairlines.com","IST",1.0],["IB","Iberia","iberia.com","MAD",1.1],

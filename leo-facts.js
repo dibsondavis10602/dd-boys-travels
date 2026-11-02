@@ -6,7 +6,7 @@
     JFK: "city culture", LAX: "city beach", ORD: "city", MIA: "beach city", YYZ: "city", MEX: "culture city", GRU: "city", EZE: "city culture", BOG: "city culture mountains",
     LHR: "city culture", CDG: "city culture", FRA: "city", AMS: "city culture", MAD: "city culture", FCO: "culture city", IST: "culture city",
     DXB: "city beach", DOH: "city culture", CAI: "culture", NBO: "nature", JNB: "city nature", LOS: "city",
-    DEL: "culture city", BOM: "city culture", BLR: "city", COK: "culture nature beach", MAA: "culture beach", CMB: "beach culture",
+    DEL: "culture city", BOM: "city culture", NMI: "city culture", BLR: "city", COK: "culture nature beach", MAA: "culture beach", CMB: "beach culture",
     SIN: "city", BKK: "city culture", KUL: "city", HKG: "city", PEK: "culture city", NRT: "city culture", ICN: "city culture",
     SYD: "city beach", MEL: "city", AKL: "city nature", DPS: "beach culture nature", MLE: "beach",
     AUH: "city culture", SHJ: "culture", MCT: "culture nature beach", BAH: "culture", KWI: "city", RUH: "culture city", JED: "culture", DMM: "city",
