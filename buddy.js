@@ -86,12 +86,86 @@
   var panel = document.createElement("section");
   panel.className = "leo-panel"; panel.id = "leo-panel"; panel.hidden = true; panel.setAttribute("aria-label", "Chat with Leo");
   panel.innerHTML =
-    '<header class="lp-head"><div><div class="lp-name">Leo <span id="leo-moodtag">· happy</span></div><div class="lp-sub">Your trip buddy · white Pomeranian</div></div><button class="lp-x" id="leo-close" type="button" aria-label="Close">×</button></header>' +
+    '<header class="lp-head"><div><div class="lp-name">Leo <span id="leo-moodtag">· happy</span></div><div class="lp-sub">Your trip buddy · white Pomeranian</div></div><div class="lp-tools"><button class="lp-x lp-voice" id="leo-voice" type="button" aria-label="Leo voice on or off" aria-pressed="true" title="Leo voice on/off">🔊</button><button class="lp-x" id="leo-close" type="button" aria-label="Close">×</button></div></header>' +
     '<div class="lp-stats"><label>Tummy<span class="meter"><i id="leo-hunger"></i></span></label><label>Joy<span class="meter joy"><i id="leo-joy"></i></span></label></div>' +
     '<div class="lp-actions"><button type="button" data-leo="feed">🦴 Feed</button><button type="button" data-leo="fetch">🎾 Play fetch</button><button type="button" data-leo="pet">🤍 Pet</button><button type="button" data-leo="suggest">✈ Suggest a trip</button></div>' +
     '<div class="lp-log" id="leo-log" aria-live="polite"></div>' +
-    '<form class="lp-ask" id="leo-form"><input id="leo-input" type="text" autocomplete="off" placeholder="Ask Leo: honeymoon in December, under $500…" maxlength="200"><button type="submit" aria-label="Send">➤</button></form>';
+    '<form class="lp-ask" id="leo-form"><input id="leo-input" type="text" autocomplete="off" placeholder="Ask Leo: honeymoon in December, under $500…" maxlength="200"><button type="button" class="lp-mic" id="leo-mic" aria-label="Talk to Leo" title="Talk to Leo" hidden>🎤</button><button type="submit" aria-label="Send">➤</button></form>';
   document.body.appendChild(panel);
+
+
+  // ---------- Leo's voice: little yips, then he talks in a high puppy voice ----------
+  var voiceOn = store("dd-leo-voice") !== "0", synth = window.speechSynthesis, leoVoice = null, actx = null, talkTimer = null;
+  function pickVoice() {
+    if (!synth) return;
+    var vs = synth.getVoices().filter(function (v) { return /^en/i.test(v.lang); });
+    var pref = [/aria|jenny|ana|emma|michelle/i, /google uk english female|google us english/i, /samantha|karen|moira|tessa|victoria|zira|female/i];
+    for (var i = 0; i < pref.length && !leoVoice; i++) leoVoice = vs.filter(function (v) { return pref[i].test(v.name); })[0] || null;
+    if (!leoVoice) leoVoice = vs[0] || null;
+  }
+  if (synth) { pickVoice(); if (synth.addEventListener) synth.addEventListener("voiceschanged", function () { leoVoice = null; pickVoice(); }); }
+  function yip(n) {
+    // A tiny Pomeranian bark made with Web Audio: a quick falling chirp with a puff of breath.
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      if (actx.state === "suspended") actx.resume();
+      for (var i = 0; i < (n || 1); i++) {
+        var t = actx.currentTime + 0.02 + i * 0.2, base = 820 + Math.random() * 180;
+        var o = actx.createOscillator(), g = actx.createGain(), f = actx.createBiquadFilter();
+        o.type = "sawtooth"; o.frequency.setValueAtTime(base * 0.75, t); o.frequency.linearRampToValueAtTime(base * 1.25, t + 0.03); o.frequency.exponentialRampToValueAtTime(base * 0.55, t + 0.13);
+        f.type = "bandpass"; f.frequency.value = 1500; f.Q.value = 1.4;
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.32, t + 0.015); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
+        o.connect(f); f.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + 0.17);
+        var len = Math.floor(actx.sampleRate * 0.06), buf = actx.createBuffer(1, len, actx.sampleRate), d = buf.getChannelData(0);
+        for (var k = 0; k < len; k++) d[k] = (Math.random() * 2 - 1) * (1 - k / len);
+        var ns = actx.createBufferSource(), ng = actx.createGain(), nf = actx.createBiquadFilter();
+        nf.type = "highpass"; nf.frequency.value = 2200; ng.gain.value = 0.07;
+        ns.buffer = buf; ns.connect(nf); nf.connect(ng); ng.connect(actx.destination); ns.start(t);
+      }
+    } catch (e) {}
+  }
+  function spoken(htmlOrText) {
+    var tmp = document.createElement("div"); tmp.innerHTML = htmlOrText;
+    tmp.querySelectorAll("button, .lp-quick, .lp-note, .dots").forEach(function (x) { x.remove(); });
+    tmp.querySelectorAll("li").forEach(function (li) { li.append(". "); });
+    tmp.querySelectorAll("p").forEach(function (p) { p.append(" "); });
+    var t = tmp.textContent
+      .replace(/\*[^*]{1,40}\*/g, " ").replace(/→|->/g, " to ").replace(/★/g, " star").replace(/[·•|]/g, ", ")
+      .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{2190}-\u{21FF}️‍]/gu, " ")
+      .replace(/\s+([,.!?])/g, "$1").replace(/\s{2,}/g, " ").trim();
+    if (t.length > 300) { var cut = t.slice(0, 300), end = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("! "), cut.lastIndexOf("? ")); t = end > 80 ? cut.slice(0, end + 1) : cut + "…"; }
+    return t;
+  }
+  var BARKS = ["Woof! ", "Arf arf! ", "Yip! ", "Ruff! ", ""];
+  function talk(htmlOrText, opts) {
+    opts = opts || {};
+    if (!voiceOn) return;
+    var text = spoken(htmlOrText); if (!text) return;
+    var barks = opts.barks == null ? (Math.random() < 0.6 ? 1 + (Math.random() < 0.4 ? 1 : 0) : 0) : opts.barks;
+    if (barks) yip(barks);
+    if (!synth) return;
+    synth.cancel();
+    var intro = barks ? "" : BARKS[Math.floor(Math.random() * BARKS.length)];
+    var u = new SpeechSynthesisUtterance(intro + text + (Math.random() < 0.25 ? " Woof!" : ""));
+    if (leoVoice) u.voice = leoVoice;
+    u.lang = (leoVoice && leoVoice.lang) || "en-US";
+    u.pitch = mood === "sad" || mood === "hungry" ? 1.55 : mood === "excited" || mood === "love" ? 2 : 1.8;
+    u.rate = mood === "sleepy" ? 0.9 : mood === "excited" ? 1.18 : 1.08;
+    u.volume = 1;
+    u.onstart = function () { dock.classList.add("talking"); };
+    u.onend = u.onerror = function () { dock.classList.remove("talking"); };
+    clearTimeout(talkTimer);
+    talkTimer = setTimeout(function () { synth.speak(u); }, barks ? 120 + barks * 200 : 0);
+  }
+  function addPlay(el) {
+    var b = document.createElement("button"); b.type = "button"; b.className = "lp-play"; b.setAttribute("aria-label", "Hear Leo say this"); b.title = "Hear Leo"; b.textContent = "▶";
+    el.appendChild(b);
+  }
+  function setVoice(on) {
+    voiceOn = on; store("dd-leo-voice", on ? "1" : "0");
+    var b = $("leo-voice"); b.textContent = on ? "🔊" : "🔇"; b.setAttribute("aria-pressed", on ? "true" : "false");
+    if (!on && synth) { synth.cancel(); dock.classList.remove("talking"); }
+  }
 
   // ---------- state ----------
   var st = { hunger: 80, joy: 70, t: Date.now() };
@@ -122,12 +196,13 @@
     $("leo-hunger").parentNode.classList.toggle("low", st.hunger < 30);
   }
   var bubbleTimer;
-  function say(text, ms) {
+  function say(text, ms, speak) {
     var b = $("leo-bubble");
+    if (speak) talk(text);
     b.textContent = text; b.classList.remove("show"); void b.offsetWidth; b.classList.add("show");
     clearTimeout(bubbleTimer); bubbleTimer = setTimeout(function () { b.classList.remove("show"); }, ms || 3600);
   }
-  function poke() { var was = mood; lastPoke = Date.now(); if (was === "sleepy") { setMood("happy", 0); say("*yawn* …I'm up! Where are we going? ✈"); } }
+  function poke() { var was = mood; lastPoke = Date.now(); if (was === "sleepy") { setMood("happy", 0); say("*yawn* …I'm up! Where are we going? ✈", 0, true); } }
 
   // floating hearts, notes, crumbs, Zzz
   function fx(chars, n, cls) {
@@ -226,33 +301,33 @@
     poke();
     st.joy = Math.min(100, st.joy + 12); save(); meters();
     setMood("love", 2600); fx(["💗", "💛", "🤍"], 4, "heart");
-    say(fromStroke ? "Hehe, that tickles! 💗" : "Aww, I love pets! 💗", 2200);
+    say(fromStroke ? "Hehe, that tickles! 💗" : "Aww, I love pets! 💗", 2200, true);
   }
   function feed() {
     if (busy) return; poke();
-    if (st.hunger > 92) { setMood("happy", 1500); say("I'm full! Maybe later? 😋", 2000); return; }
+    if (st.hunger > 92) { setMood("happy", 1500); say("I'm full! Maybe later? 😋", 2000, true); return; }
     busy = true;
     var bowl = $("leo-bowl"); bowl.classList.remove("eaten"); bowl.classList.add("show", "fill");
-    say("Treats?! For me?! 🦴", 1500); setMood("excited");
+    say("Treats?! For me?! 🦴", 1500); yip(3); setMood("excited");
     setTimeout(function () {
       setMood("eating"); dock.classList.add("eat");
       fx(["·", "•", "·"], 3, "crumb");
       setTimeout(function () {
         dock.classList.remove("eat"); bowl.classList.add("eaten");
         st.hunger = 100; st.joy = Math.min(100, st.joy + 8); save(); meters();
-        setMood("love", 2600); fx(["💛", "😋"], 2, "heart"); say("Yum! Best treat ever. Thank you! 😋", 2400);
+        setMood("love", 2600); fx(["💛", "😋"], 2, "heart"); say("Yum! Best treat ever. Thank you! 😋", 2400, true);
         setTimeout(function () { bowl.classList.remove("show", "fill"); busy = false; }, 900);
       }, 2000);
     }, 900);
   }
   function fetchBall() {
     if (busy) return; poke(); busy = true;
-    if (st.hunger < 15) { busy = false; setMood("hungry"); say("Too hungry to run… 🥺 Treat first?", 2400); return; }
+    if (st.hunger < 15) { busy = false; setMood("hungry"); say("Too hungry to run… 🥺 Treat first?", 2400, true); return; }
     var r = btn.getBoundingClientRect(), dir = r.left + r.width / 2 > innerWidth / 2 ? -1 : 1;
     var dist = Math.max(60, Math.min(320, dir < 0 ? r.left - 30 : innerWidth - r.right - 30));
     var sx = r.left + r.width * 0.5, sy = r.top + r.height * 0.55, ex = sx + dir * dist, ey = r.bottom - 14;
     ball.style.left = "0px"; ball.style.top = "0px"; ball.classList.add("show");
-    say("Ball!! 🎾", 1400); setMood("excited");
+    say("Ball!! 🎾", 1400); yip(2); setMood("excited");
     var thrown = ball.animate([
       { transform: "translate(" + sx + "px," + sy + "px) rotate(0)" },
       { transform: "translate(" + (sx + ex) / 2 + "px," + (sy - 150) + "px) rotate(360deg)", offset: 0.45 },
@@ -270,7 +345,7 @@
           back.onfinish = function () {
             dock.classList.remove("run", "has-ball"); go.cancel(); back.cancel(); thrown.cancel();
             st.joy = Math.min(100, st.joy + 15); st.hunger = Math.max(0, st.hunger - 6); save(); meters();
-            var pl = Math.random() < 0.5; setMood(pl ? "playful" : "excited", 2400); fx(["⭐", "✨"], 3, "heart"); say(pl ? "Hehe, I'm the fastest pup in the world! 😜" : "Got it! Again? Again?! 🎾", 2400);
+            var pl = Math.random() < 0.5; setMood(pl ? "playful" : "excited", 2400); fx(["⭐", "✨"], 3, "heart"); say(pl ? "Hehe, I'm the fastest pup in the world! 😜" : "Got it! Again? Again?! 🎾", 2400, true);
             busy = false;
           };
         }, 260);
@@ -285,7 +360,7 @@
     if (show && !$("leo-log").children.length) greet();
     if (show && pendingHunt) { log(pendingHunt); pendingHunt = null; }
   }
-  $("leo-close").addEventListener("click", function () { toggle(false); });
+  $("leo-close").addEventListener("click", function () { toggle(false); if (synth) synth.cancel(); dock.classList.remove("talking"); });
   panel.addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
     if (b.dataset.leo === "feed") feed();
@@ -298,6 +373,34 @@
     else if (b.dataset.fly) { var p = b.dataset.fly.split("|"); window.DD.flyTo(p[0], p[1]); say("Pawsome choice! Fetching flights… ✈", 2400); setMood("excited", 2000); if (innerWidth < 700) toggle(false); }
   });
   $("leo-form").addEventListener("submit", function (e) { e.preventDefault(); var v = $("leo-input").value.trim(); if (!v) return; $("leo-input").value = ""; ask(v); });
+  setVoice(voiceOn);
+  $("leo-voice").addEventListener("click", function () { setVoice(!voiceOn); if (voiceOn) talk("Yay, I can talk again!", { barks: 2 }); });
+  // ▶ on every Leo message: hear it again
+  $("leo-log").addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest(".lp-play"); if (!b) return;
+    var m = b.closest(".lp-msg"); if (!m) return;
+    var was = voiceOn; voiceOn = true; talk(m.innerHTML); voiceOn = was;
+    b.classList.remove("pop"); void b.offsetWidth; b.classList.add("pop");
+  });
+  // 🎤 talk to Leo (Chrome, Edge, Safari)
+  var Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (Rec) {
+    var mic = $("leo-mic"), rec = null, listening = false; mic.hidden = false;
+    mic.addEventListener("click", function () {
+      if (listening) { rec && rec.stop(); return; }
+      if (synth) synth.cancel();
+      rec = new Rec(); rec.lang = navigator.language || "en-US"; rec.interimResults = true; rec.maxAlternatives = 1;
+      rec.onstart = function () { listening = true; mic.classList.add("on"); setMood("curious"); say("I'm all ears! 👂", 2500); };
+      rec.onresult = function (ev) {
+        var r = ev.results[ev.results.length - 1], t = r[0].transcript;
+        $("leo-input").value = t;
+        if (r.isFinal) { $("leo-input").value = ""; ask(t.trim()); }
+      };
+      rec.onerror = function (ev) { if (ev.error === "not-allowed" || ev.error === "service-not-allowed") say("I can't hear you. Please allow the microphone 🎤", 3600); };
+      rec.onend = function () { listening = false; mic.classList.remove("on"); };
+      try { rec.start(); } catch (e) {}
+    });
+  }
 
   // ---------- trip ideas ----------
   var THEME = {
@@ -540,6 +643,7 @@
   function log(html, who) {
     var d = document.createElement("div");
     d.className = "lp-msg " + (who || "leo"); d.innerHTML = html;
+    if (!who || who === "leo") addPlay(d);
     var lg = $("leo-log"); lg.appendChild(d); lg.scrollTop = lg.scrollHeight;
     return d;
   }
@@ -564,7 +668,8 @@
     Promise.resolve(null).then(function () {
       var res = localBrain(text);
       setTimeout(function () {
-        wait.className = "lp-msg leo"; wait.innerHTML = res.html;
+        wait.className = "lp-msg leo"; wait.innerHTML = res.html; addPlay(wait);
+        talk(res.html);
         $("leo-log").scrollTop = $("leo-log").scrollHeight;
         chatLog.push({ role: "leo", text: res.reply || wait.textContent.slice(0, 300) });
         setMood(res.mood || "happy", 2600); if (res.mood === "excited") fx(["✈", "✨"], 2, "heart"); if (res.mood === "love") fx(["💛", "💗"], 3, "heart");
@@ -587,7 +692,7 @@
     if (a && b) html += "<p>I see you're looking at <b>" + esc(a.city) + " → " + esc(b.city) + "</b>. Want the cheapest day, or hotels in " + esc(b.city) + "?</p>" + btns([["📅 Cheapest day", 'data-ask="Cheapest day to fly to ' + esc(b.city) + '"'], ["🏨 Hotels in " + esc(b.city), 'data-hotels="' + b.code + '"'], ["☀️ Best time to visit", 'data-ask="Best time to visit ' + esc(b.city) + '"']]);
     if (!who()) html += "<p>What's your name? Just tell me <i>“I'm …”</i> and I'll remember it.</p>";
     if (st.hunger < 30) html += "<p>Also… my tummy's rumbling. A treat? 🥺🦴</p>";
-    log(html);
+    log(html); talk(html, { barks: 2 });
     log("<p>Or ask me anything: <i>beach under $300 in December</i>, <i>how much to Paris?</i>, <i>what to pack for Bali?</i></p>" + quickMenu());
     setMood("excited", 1800); wave();
   }
@@ -697,7 +802,7 @@
     if (busy || playing) return;
     lastHi = Date.now(); wave();
     if (mood === "sleepy") setMood("happy", 2600); else setMood(mood === "hungry" ? "hungry" : "happy", 2600);
-    say(text.replace(/&amp;/g, "&").replace(/&#39;/g, "'"), 4200);
+    say(text.replace(/&amp;/g, "&").replace(/&#39;/g, "'"), 4200, true);
   }
   ["pointermove", "keydown", "scroll", "touchstart"].forEach(function (ev) {
     window.addEventListener(ev, function () {

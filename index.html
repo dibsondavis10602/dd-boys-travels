@@ -656,6 +656,24 @@ header.top.scrolled { background: var(--glass-hi); box-shadow: 0 12px 30px -18px
 .motion dialog[open] { animation: pop .45s cubic-bezier(.2,.8,.25,1.1); }
 @keyframes pop { from { opacity: 0; transform: translateY(24px) scale(.96); } }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+
+/* Leo's voice */
+.lp-tools { display: flex; gap: 6px; }
+.lp-voice { font-size: 15px; }
+.lp-voice[aria-pressed="false"] { opacity: .6; }
+.lp-msg.leo { position: relative; }
+.lp-play { position: absolute; right: -8px; bottom: -8px; width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--gold); font-size: 10px; cursor: pointer; display: grid; place-items: center; box-shadow: 0 2px 8px rgba(0,0,0,.18); transition: transform .2s; }
+.lp-play:hover { transform: scale(1.15); }
+.lp-play.pop { animation: lp-pop .45s cubic-bezier(.3,1.6,.5,1); }
+@keyframes lp-pop { 40% { transform: scale(1.35) rotate(-10deg); } }
+.lp-mic { border: 1px solid var(--line) !important; background: var(--card) !important; color: var(--ink) !important; }
+.lp-mic.on { background: #e5484d !important; color: #fff !important; border-color: #e5484d !important; animation: lp-rec 1s ease-in-out infinite; }
+@keyframes lp-rec { 50% { box-shadow: 0 0 0 6px rgba(229,72,77,.25); } }
+.leo-dock.talking .l-mouth { opacity: 0 !important; }
+.leo-dock.talking .l-mouth-open { opacity: 1 !important; transform-box: fill-box; transform-origin: 50% 0; animation: l-talk .16s ease-in-out infinite alternate; }
+.leo-dock.talking .l-head { animation: l-nod .5s ease-in-out infinite alternate; }
+@keyframes l-talk { from { transform: scaleY(.35); } to { transform: scaleY(1.1); } }
+@keyframes l-nod { from { rotate: -3deg; } to { rotate: 3deg; } }
 </style>
 </head>
 <body>
