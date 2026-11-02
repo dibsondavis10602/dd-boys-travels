@@ -366,5 +366,5 @@
     play();
   }, 5000);
   addEventListener("resize", follow);
-  window.Guru = { visit: visit, leave: leave, play: play, heard: heard, leoAte: leoAte, status: function () { return { here: here, doing: doing }; } };
+  window.Guru = { visit: visit, leave: leave, play: play, heard: heard, leoAte: leoAte, status: function () { return { here: here, doing: doing, busy: busy, napping: napping }; }, el: dock, say: say, hop: hop };
 })();

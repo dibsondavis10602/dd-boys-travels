@@ -402,6 +402,11 @@
       var done = function () { b.textContent = "✓ Copied!"; woof("bark"); setTimeout(function () { b.textContent = "📋 Copy plan"; }, 1800); };
       if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done, function () {}); else done();
     }
+    else if (b.dataset.pdf) {
+      var pm = b.closest(".lp-msg"), pp = pm && pm.querySelector(".lp-plan"); if (!pp || !window.PlanPDF) return;
+      var was = b.textContent; b.textContent = "⏳ Making…"; b.disabled = true; setMood("excited");
+      window.PlanPDF.make(pp).then(function (r) { b.disabled = false; b.textContent = r.ok ? "✓ Saved!" : was; woof("yips"); say(r.ok ? "Your plan is ready! 📄🐾" : "Pick Save as PDF in the print window 📄", 2600); setTimeout(function () { b.textContent = was; }, 2200); });
+    }
     else if (b.dataset.day) { window.DD.pickDay(b.dataset.day); say("Switched! Good choice 🐾", 2000); setMood("love", 1800); }
     else if (b.dataset.hotels) { window.DD.hotelsIn(b.dataset.hotels); say("Finding comfy beds… 🛏", 2200); setMood("happy", 1500); if (innerWidth < 700) toggle(false); }
     else if (b.dataset.fly) { var p = b.dataset.fly.split("|"); window.DD.flyTo(p[0], p[1]); say("Pawsome choice! Fetching flights… ✈", 2400); setMood("excited", 2000); if (innerWidth < 700) toggle(false); }
@@ -530,7 +535,7 @@
 
   var SEASON_CITY = { DPS: ["April to October", "Bali's dry, sunny season"], CGK: ["May to September", "the dry season"], RAK: ["March to May or September to November", "warm days without the summer heat"], CMN: ["April to October", "sunny and mild by the Atlantic"],
     CPT: ["November to March", "Cape Town's warm, dry summer"], JNB: ["March to May or September to November", "mild and sunny"], NRT: ["late March to May or October to November", "cherry blossoms or autumn leaves"], KTM: ["October to November or March to April", "clear mountain views"] };
-  var STOP = /^(the|and|for|from|with|trip|trips|cheap|cheapest|flight|flights|hotel|hotels|best|time|visit|go|to|in|me|my|a|an|under|day|days|what|when|how|much|is|it|there|please|leo|can|you|weather|pack|packing|do|see|eat|things|thing|currency|money|language|safe|safest|country|countries|night|nights|people|person|honeymoon|family|week|weeks|month|months|plan|holiday|holidays|vacation|luxury|budget|cold|hot|warm|rain|food|foods|show|shows|watch|festival|events|need|visa|fly|direct|long|cost|price|ticket|tickets|good|great|nice|place|places|top|must|famous|popular|local|special|about|here|today|tomorrow|sea|beach|mountains|city|culture|nature|now|next|this|that|cheaper|more|less|make|want|like|love|also|some|any|all|tell|give|find|book|guide|sightseeing|sights|attractions|weekend|getaway|tour|stay|room|rooms|deal|deals|idea|ideas|suggest|surprise|random|anywhere|again|same|other)$/;
+  var STOP = /^(the|and|for|from|with|trip|trips|cheap|cheapest|flight|flights|hotel|hotels|best|time|visit|go|to|in|me|my|a|an|under|day|days|what|when|how|much|is|it|there|please|leo|can|you|weather|pack|packing|do|see|eat|things|thing|currency|money|language|safe|safest|country|countries|night|nights|people|person|honeymoon|family|week|weeks|month|months|plan|holiday|holidays|vacation|luxury|budget|cold|hot|warm|rain|food|foods|show|shows|watch|festival|events|need|visa|fly|direct|long|cost|price|ticket|tickets|good|great|nice|place|places|top|must|famous|popular|local|special|about|here|today|tomorrow|sea|beach|mountains|city|culture|nature|now|next|this|that|cheaper|more|less|make|want|like|love|also|some|any|all|tell|give|find|book|guide|sightseeing|sights|attractions|weekend|getaway|tour|stay|room|rooms|deal|deals|idea|ideas|suggest|surprise|random|anywhere|again|same|other|plug|plugs|adapter|adapters|socket|sockets|voltage|volts|charger|tip|tipping|emergency|police|ambulance|number|drive|driving|road|side|water|tap|drink|phrase|phrases|say|hello|thank|thanks|essentials|know|before|pdf|download|print|save)$/;
   function cityFrom(text) {
     var t = " " + text.toLowerCase().replace(/[?!.,()]/g, " ").replace(/\s+/g, " ").trim() + " ";
     var F = window.LeoFacts, cand = [], m, re = /(?:to|in|visit|visiting|for|about|at|of|explore|around)\s+([a-zà-ÿ'-]+(?:\s[a-zà-ÿ'-]+){0,2})/g;
@@ -659,6 +664,8 @@
     // Don't miss: special things to watch and food for each city
     var dm = cities.map(function (c) { var g = guideOf(c.code); return (g.watch.length || g.food) ? "<li><b>" + esc(c.city) + ":</b> " + (g.watch.length ? "🎭 " + g.watch.slice(0, 2).map(esc).join("; ") : "") + (g.watch.length && g.food ? " · " : "") + (g.food ? "🍽 " + esc(g.food) : "") + "</li>" : ""; }).join("");
     if (dm) html += '<div class="lp-miss"><b>✨ Don\'t miss</b><ul class="lp-ul">' + dm + "</ul></div>";
+    var kbs = cities.map(function (c) { return c.country; }).filter(function (c, i, a) { return a.indexOf(c) === i && c !== homeA.country; }).map(function (c) { return kbLine(c, homeA.country); }).join("");
+    if (kbs) html += '<div class="lp-miss lp-kb"><b>🧳 Know before you go</b><ul class="lp-ul">' + kbs + "</ul></div>";
     html += '<table class="lp-cost"><tr><td>✈ Flights (' + legs.length + " flights × " + ppl + ")</td><td>" + window.DD.money(fl) + "</td></tr>" +
       hotels.map(function (h) { return "<tr><td>🏨 " + (h.hotel ? esc(h.hotel[0]) : stars + "★ hotel") + (n > 1 ? " (" + esc(h.city.city) + ")" : "") + ", " + h.nights + " night" + (h.nights === 1 ? "" : "s") + (rooms > 1 ? " × " + rooms + " rooms" : "") + "</td><td>" + window.DD.money(h.night * h.nights * rooms) + "</td></tr>"; }).join("") +
       "<tr><td>🍜 Food, local transport &amp; tickets</td><td>" + window.DD.money(daily) + "</td></tr>" +
@@ -669,7 +676,7 @@
         : '<p class="lp-warn">⚠️ About ' + window.DD.money(tot - b) + " over your " + window.DD.money(b) + " budget. Try <i>cheaper</i> or fewer days.</p>";
     }
     html += '<div class="lp-note">Estimated prices. Check opening times and event dates before you go. The buttons open live prices.</div></div>' +
-      btns([["✈ Book flights", 'data-fly="' + cities[0].code + "|" + start + '"'], ["🏨 Book hotel", 'data-hotels="' + cities[0].code + '"'], ["📋 Copy plan", 'data-copy="1"']]) +
+      btns([["✈ Book flights", 'data-fly="' + cities[0].code + "|" + start + '"'], ["🏨 Book hotel", 'data-hotels="' + cities[0].code + '"'], ["📋 Copy plan", 'data-copy="1"'], ["📄 PDF", 'data-pdf="1"']]) +
       btns([["⭐ Luxury", 'data-ask="Make it luxury"'], ["💸 Cheaper", 'data-ask="Make it cheaper"'], ["➕ 2 more days", 'data-ask="Make it ' + (days + 2) + ' days"'], ["👥 For 2", 'data-ask="For 2 people"']]);
     return { html: html, mood: o.budget && tot > o.budget / (rate() || 1) ? "sad" : tot / ppl < 600 ? "surprised" : "cool", intent: "Trip plan" };
   }
@@ -770,8 +777,8 @@
     return a && b && a.code !== b.code ? { from: a, to: b } : null;
   }
   // ---------- understanding: typos, follow-ups, multi-part questions ----------
-  var VOCAB = "flights flight hotels hotel cheap cheapest weather visa beach beaches mountains mountain honeymoon holiday holidays vacation trip trips plan itinerary days nights people budget currency things restaurants family weekend direct airline airlines december january february march april june july august september october november temperature tickets ticket expensive suggest recommend compare luxury romantic shopping festival festivals island islands snow sightseeing attractions destination destinations distance vaccine vaccines passport packing".split(" ");
-  var COMMON = /^(where|there|their|which|about|would|could|should|really|place|places|going|want|need|have|will|what|when|from|with|your|some|more|best|good|nice|also|like|love|much|many|make|take|help|know|think|please|thanks|hello|money|family|friends|wife|husband|kids|children|this|that|they|them|then|than|been|were|here|time|year|years|month|week|weeks|next|last|first|only|just|very|into|over|after|before|other|same|each|every|cheaper|maybe|today|tomorrow|tonight|morning|evening|night|food|drink|stay|visit|book|show|find|tell|give|great|happy|sorry|okay|yeah|alone|together|fine|still|again|thing|safe|cold|warm|sunny|rain|price|cost|tour|person|leo|bruno|guru|parks|park|bars|cafes|clubs|movie|music|dance|camel|horse|boats|cruise|train|trains|buses|cards|rooms|house|homes|hours|games|sport|sports|watch|white|black|brown|green|world|water|river|lakes|views|photo|photos|party|dress|girls|guys|boys|mother|father|parents|brother|sister|baby|wedding|birthday|working|work|office|student|college|school|doing|done|made|says|said|real|dogs|play|plays|food|foods|eating|hungry|tired|bored|sad|lonely|sick|angry|upset|excited|stressed|sleep|sleepy|feel|feeling|old|age|name|names|call|bring|fetch|ball|treat|treats|cheers|awesome|perfect|cool|wow|alright|nope|sure|yes|okay|thank|ahead|anything|everything|something|somewhere|anywhere|always|never|because|while|still|until|since|though|between|around|inside|outside|under|above|below|without|within|nearby|close|near|warmer|colder|longer|shorter|bigger|smaller|cheap|cheapest|luxury|hostel|hostels|resort|resorts|villa|villas|airport|airports|layover|stops|stop|direct|return|round|oneway|economy|business|class|seat|seats|baggage|luggage|bags|meal|meals|halal|vegan|veggie|vegetarian|dollar|dollars|bucks|rupees|rupee|euros|pounds|dirhams|dirham|riyals|grand|lakh|lakhs|thousand|hundred|made|make|maker|wants|went|gone|come|came|says|tell|told|asked|ask|answer|question|kind|sort|type|time|times|tour|tours|stuff)$/;
+  var VOCAB = "flights flight hotels hotel cheap cheapest weather visa beach beaches mountains mountain honeymoon holiday holidays vacation trip trips plan itinerary days nights people budget currency things restaurants family weekend direct airline airlines december january february march april june july august september october november temperature tickets ticket expensive suggest recommend compare luxury romantic shopping festival festivals island islands snow sightseeing attractions destination destinations distance vaccine vaccines passport packing adapter voltage tipping emergency driving phrases essentials".split(" ");
+  var COMMON = /^(where|there|their|which|about|would|could|should|really|place|places|going|want|need|have|will|what|when|from|with|your|some|more|best|good|nice|also|like|love|much|many|make|take|help|know|think|please|thanks|hello|money|family|friends|wife|husband|kids|children|this|that|they|them|then|than|been|were|here|time|year|years|month|week|weeks|next|last|first|only|just|very|into|over|after|before|other|same|each|every|cheaper|maybe|today|tomorrow|tonight|morning|evening|night|food|drink|stay|visit|book|show|find|tell|give|great|happy|sorry|okay|yeah|alone|together|fine|still|again|thing|safe|cold|warm|sunny|rain|price|cost|tour|person|leo|bruno|guru|parks|park|bars|cafes|clubs|movie|music|dance|camel|horse|boats|cruise|train|trains|buses|cards|rooms|house|homes|hours|games|sport|sports|watch|white|black|brown|green|world|water|river|lakes|views|photo|photos|party|dress|girls|guys|boys|mother|father|parents|brother|sister|baby|wedding|birthday|working|work|office|student|college|school|doing|done|made|says|said|real|dogs|play|plays|food|foods|eating|hungry|tired|bored|sad|lonely|sick|angry|upset|excited|stressed|sleep|sleepy|feel|feeling|old|age|name|names|call|bring|fetch|ball|treat|treats|cheers|awesome|perfect|cool|wow|alright|nope|sure|yes|okay|thank|ahead|anything|everything|something|somewhere|anywhere|always|never|because|while|still|until|since|though|between|around|inside|outside|under|above|below|without|within|nearby|close|near|warmer|colder|longer|shorter|bigger|smaller|cheap|cheapest|luxury|hostel|hostels|resort|resorts|villa|villas|airport|airports|layover|stops|stop|direct|return|round|oneway|economy|business|class|seat|seats|baggage|luggage|bags|meal|meals|halal|vegan|veggie|vegetarian|dollar|dollars|bucks|rupees|rupee|euros|pounds|dirhams|dirham|riyals|grand|lakh|lakhs|thousand|hundred|made|make|maker|wants|went|gone|come|came|says|tell|told|asked|ask|answer|question|kind|sort|type|time|times|tour|tours|stuff|tips|tip|tipping|plug|plugs|adapter|socket|voltage|volts|emergency|police|ambulance|driving|drive|phrase|phrases|essentials|japanese|french|spanish|italian|german|korean|chinese|arabic|thai|pdf|print|download)$/;
   var CITYWORDS = null;
   function fixTypos(text) {
     if (!CITYWORDS) {
@@ -797,8 +804,8 @@
     "Food to try": "what to eat in {c}", "Special to watch": "things to watch in {c}", "Best time to visit": "best time to visit {c}", "Cheapest day": "cheapest day to fly to {c}",
     "Cheapest month": "cheapest month to fly to {c}", "Currency": "currency in {c}", "Language": "language in {c}", "Visa": "visa for {c}", "Packing list": "what to pack for {c}",
     "Flight time & direct flights": "how long is the flight to {c}", "Cost of travel": "is {c} expensive", "Time difference": "time difference with {c}", "Best airline": "best airline to {c}",
-    "Distance": "how far is {c}", "Health": "vaccines for {c}", "Trip ideas": "cheap flights to {c}", "Compare places": "cheap flights to {c}", "Compare months": "cheap flights to {c}" };
-  function intentWords(t) { return /flight|fly|fare|ticket|hotel|stay|room|weather|rain|hot|cold|visa|pack|currency|money|eat|food|things to|see\b|watch|plan|itinerary|\d+\s*(days?|nights?)|best time|cheapest|airline|expensive|cost|how far|time difference|vaccin|compare|\bor\b|\bvs\b|beach|mountain|snow|warm|suggest|idea|where/.test(t); }
+    "Distance": "how far is {c}", "Plugs": "plug type in {c}", "Emergency numbers": "emergency number in {c}", "Driving": "which side do they drive in {c}", "Tap water": "is tap water safe in {c}", "Tipping": "tipping in {c}", "Phrases": "how to say hello in {c}", "Know before you go": "know before you go {c}", "Health": "vaccines for {c}", "Trip ideas": "cheap flights to {c}", "Compare places": "cheap flights to {c}", "Compare months": "cheap flights to {c}" };
+  function intentWords(t) { return /flight|fly|fare|ticket|hotel|stay|room|weather|rain|hot|cold|visa|pack|currency|money|eat|food|things to|see\b|watch|plan|itinerary|\d+\s*(days?|nights?)|best time|cheapest|airline|expensive|cost|how far|time difference|vaccin|plug|adapter|socket|voltage|tipping|\btip\b|emergency|police|ambulance|drive|driving|tap water|drink|phrase|say hello|know before|essentials|compare|\bor\b|\bvs\b|beach|mountain|snow|warm|suggest|idea|where/.test(t); }
   function resolve(text) {
     var t = text.toLowerCase().replace(/[?!.]+$/, "").trim(), words = t.split(/\s+/).length;
     if (ctx.pending && words <= 4 && /^(yes|yeah|yep|yup|sure|ok|okay|please|go ahead|do it|of course|why not|haan|ha|y)\b/.test(t)) { var p = ctx.pending; ctx.pending = null; return { q: p, said: true }; }
@@ -876,9 +883,50 @@
   // Places with reliable snow in their winter (city or a short trip to nearby mountains).
   var SNOWY = "ZRH GVA MUC VIE PRG KEF OSL ARN HEL SVO YUL YYZ YYC YVR TBS ALA ULN DEN MSP ORD BOS ICN PEK SEA CHC SCL KTM ISB TAS GYD".split(" ");
   function snowIn(a, m) { var mi = +m.slice(5, 7), north = a.lat > 0, winter = north ? mi === 12 || mi <= 2 : mi >= 6 && mi <= 8; return winter && SNOWY.indexOf(a.code) >= 0; }
+  // ---------- know before you go: plugs, emergency numbers, driving side, tap water, tipping, phrases ----------
+  function worldAsk(t) {
+    if (/know before|before (i|we) go|travel (essentials|basics|info)|essentials|things to know|need to know|first.?tim(e|er)|travel tips for|tips for (visiting|travel)/.test(t)) return "all";
+    if (/\bplugs?\b|adapter|socket|voltage|\bvolts?\b|power outlet|charger/.test(t)) return "plug";
+    if (/emergency|police (number|no)|ambulance|helpline|\bsos\b|hospital number|call for help/.test(t)) return "sos";
+    if (/drive on|driving side|which side|left.hand (drive|side)|right.hand (drive|side)|side of the road|drive (a car )?(in|there)|rent(ing)? a car|car rental|driving licen[cs]e|international driving/.test(t)) return "drive";
+    if (/tap water|drink(ing)? (the )?water|water (safe|ok|clean)|safe to drink/.test(t)) return "water";
+    if (/tipping|gratuity|service charge|should (i|we) tip|do (i|we|you|people) tip|how much (to|should i|do i) tip|\btip (in|at|for (the )?(waiter|driver|guide|taxi))/.test(t)) return "tip";
+    if (/how (do (you|i)|to) say|phrases?|hello in|thank you in|thanks in|greet(ing)? in|local words|say (hello|thank)/.test(t)) return "phrase";
+    return null;
+  }
+  var LANG_C = { japanese: "Japan", french: "France", spanish: "Spain", italian: "Italy", german: "Germany", thai: "Thailand", arabic: "United Arab Emirates", korean: "South Korea", chinese: "China", mandarin: "China",
+    portuguese: "Portugal", greek: "Greece", turkish: "Türkiye", hindi: "India", malay: "Malaysia", indonesian: "Indonesia", vietnamese: "Vietnam", swahili: "Kenya", dutch: "Netherlands", russian: "Russia",
+    sinhala: "Sri Lanka", nepali: "Nepal", bengali: "Bangladesh", urdu: "Pakistan", hebrew: "Israel", czech: "Czechia", polish: "Poland", hungarian: "Hungary", swedish: "Sweden", danish: "Denmark", norwegian: "Norway", finnish: "Finland", icelandic: "Iceland", maori: "New Zealand", fijian: "Fiji", tagalog: "Philippines", filipino: "Philippines" };
+  function langCountry(t) { var m = t.match(/\b(japanese|french|spanish|italian|german|thai|arabic|korean|chinese|mandarin|portuguese|greek|turkish|hindi|malay|indonesian|vietnamese|swahili|dutch|russian|sinhala|nepali|bengali|urdu|hebrew|czech|polish|hungarian|swedish|danish|norwegian|finnish|icelandic|maori|fijian|tagalog|filipino)\b/); return m ? { country: LANG_C[m[1]], city: LANG_C[m[1]], lang: m[1] } : null; }
+  function kbLine(country, homeCountry) {
+    var w = window.LeoWorld && window.LeoWorld.get(country), cf = window.LeoFacts && window.LeoFacts.COUNTRY[country], hw = window.LeoWorld && window.LeoWorld.get(homeCountry);
+    if (!w) return "";
+    return "<li><b>" + esc(country) + ":</b> " + (cf ? "💱 " + esc(cf[1]) + " (" + cf[0] + ") · " : "") + "🔌 plug " + esc(w.plugs) + ", " + w.volts + "V" + (hw && country !== homeCountry ? (window.LeoWorld.plugNote(w, hw).indexOf("adapter") >= 0 ? " (bring an adapter)" : " (your plugs fit)") : "") +
+      " · 🚗 drive on the " + w.drive + " · 🆘 " + esc(w.sos) + " · 🚰 " + window.LeoWorld.WATER[w.water] + " · 💁 tips: " + esc(w.tip.charAt(0).toLowerCase() + w.tip.slice(1)) + " · 🗣 “" + esc(w.hello) + "” = hello, “" + esc(w.thanks) + "” = thank you</li>";
+  }
+  function worldAnswer(kind, c, homeA) {
+    var L = window.LeoWorld, w = L && L.get(c.country); if (!w) return null;
+    var hw = homeA && L.get(homeA.country), place = c.code ? esc(c.city) + (c.city !== c.country ? ", " + esc(c.country) : "") : esc(c.country), cn = esc(c.country), why = "From the IEC plug list, national emergency-number lists and local travel customs. Rules can change, so double-check before you go.";
+    var more = btns([["🧳 Know before you go", 'data-ask="Know before you go ' + esc(c.code ? c.city : c.country) + '"']].concat(c.code ? [["✈ Flights", 'data-ask="Cheap flights to ' + esc(c.city) + '"']] : []));
+    if (kind === "plug") return { intent: "Plugs", mood: "curious", why: why, html: "<p>🔌 " + cn + " uses plug type <b>" + esc(w.plugs) + "</b> at <b>" + w.volts + "V</b>.</p>" + (hw && hw.plugs !== w.plugs && homeA.country !== c.country ? "<p>" + esc(L.plugNote(w, hw)) + "</p>" : hw && homeA.country !== c.country ? "<p>" + esc(L.plugNote(w, hw)) + "</p>" : "") + more };
+    if (kind === "sos") return { intent: "Emergency numbers", mood: "curious", why: why, html: "<p>🆘 Emergency number in " + cn + ": <b>" + esc(w.sos) + "</b>.</p><p>Save it in your phone before you land, along with your hotel's address and your embassy's number. 112 also works on most mobile phones in many countries. 🐾</p>" + more };
+    if (kind === "drive") return { intent: "Driving", mood: "curious", why: why, html: "<p>🚗 In " + cn + " cars drive on the <b>" + w.drive + "</b>" + (hw && hw.drive !== w.drive ? ", the opposite side from home, so take it slow at first and look the other way when crossing streets" : hw ? ", same as at home" : "") + ".</p><p>To rent a car, most countries want your home licence plus an <b>International Driving Permit</b>. Check the rental company's rules before you go.</p>" + more };
+    if (kind === "water") return { intent: "Tap water", mood: w.water === 1 ? "happy" : "curious", why: why, html: "<p>🚰 In " + cn + ": <b>" + L.WATER[w.water] + "</b>.</p>" + (w.water !== 1 ? "<p>Use sealed bottled or filtered water, and skip ice in street stalls. A refillable bottle with a filter saves money and plastic. 🐾</p>" : "<p>Bring a refillable bottle and save money! 🐾</p>") + more };
+    if (kind === "tip") return { intent: "Tipping", mood: "happy", why: why, html: "<p>💁 Tipping in " + cn + ": <b>" + esc(w.tip) + "</b>.</p>" + more };
+    if (kind === "phrase") return { intent: "Phrases", mood: "love", why: why, html: "<p>🗣 In " + cn + ":</p><ul class=\"lp-ul\"><li>Hello: <b>" + esc(w.hello) + "</b></li><li>Thank you: <b>" + esc(w.thanks) + "</b></li></ul><p>Locals love it when you try, even if the accent is wobbly like my ears! 🐾</p>" + more };
+    var cf = window.LeoFacts && window.LeoFacts.COUNTRY[c.country];
+    return { intent: "Know before you go", mood: "cool", why: why, html: "<p>🧳 <b>Know before you go: " + place + "</b></p><ul class=\"lp-ul\">" +
+      (cf ? "<li>💱 Money: <b>" + esc(cf[1]) + " (" + cf[0] + ")</b></li><li>🗣 Language: " + esc(cf[2]) + "</li>" : "") +
+      "<li>👋 Say <b>" + esc(w.hello) + "</b> (hello) and <b>" + esc(w.thanks) + "</b> (thank you)</li>" +
+      "<li>🔌 Plugs: type " + esc(w.plugs) + ", " + w.volts + "V" + (hw && homeA.country !== c.country ? ". " + esc(L.plugNote(w, hw)) : "") + "</li>" +
+      "<li>🚗 Cars drive on the <b>" + w.drive + "</b></li><li>🆘 Emergency: <b>" + esc(w.sos) + "</b></li><li>🚰 Water: " + L.WATER[w.water] + "</li><li>💁 Tipping: " + esc(w.tip) + "</li></ul>" +
+      btns([["🛂 Visa", 'data-ask="Visa for ' + esc(c.code ? c.city : c.country) + '"'], ["💉 Health", 'data-ask="Vaccines for ' + esc(c.code ? c.city : c.country) + '"'], ["🎒 Packing", 'data-ask="What to pack for ' + esc(c.code ? c.city : c.country) + '"']]) };
+  }
   function localBrain(text) {
     var t = text.toLowerCase().trim(), name = who(), home = window.DD.home(), homeA = M.airport(home), month = parse(text).month || window.DD.month();
     var route = routeOf(text); if (route) { home = route.from.code; homeA = route.from; }
+    // "how do you say thank you in Japanese" is about words, not a thank-you to Leo
+    if (worldAsk(t) === "phrase") { var pc = cityFrom(text) || langCountry(t); if (pc) { if (pc.code) lastCity = pc; var pa = worldAnswer("phrase", pc, homeA); if (pa) return pa; } }
     // "is it cheaper in May?": compare two months for the same place
     var cmo = text.match(/^__cmpmonth (\w+) (\d{4}-\d{2})/);
     if (cmo) {
@@ -952,7 +1000,7 @@
     if (/play|ball|fetch/.test(t) && !cityFrom(text)) { setTimeout(fetchBall, 400); return { html: "<p>Ball time! Watch this! 🎾</p>", mood: "excited" }; }
 
     // what can you do
-    if (/what can you do|help|how (do|does) (this|you) work|commands/.test(t)) return { html: "<p>Lots! Try:</p><ul class=\"lp-ul\"><li><i>Plan 5 days in Bali for 2</i>: a day-by-day plan with flights, hotel and budget</li><li><i>Paris or London?</i>: I compare them</li><li><i>weekend trip under $200</i></li><li><i>direct flights to Doha</i></li><li><i>cheapest day to fly to Goa</i></li><li><i>best time to visit Japan</i>, <i>what to pack</i></li></ul>", mood: "happy" };
+    if (/what can you do|help|how (do|does) (this|you) work|commands/.test(t)) return { html: "<p>Lots! Try:</p><ul class=\"lp-ul\"><li><i>Plan 5 days in Bali for 2</i>: a day-by-day plan with flights, hotel and budget</li><li><i>Paris or London?</i>: I compare them</li><li><i>weekend trip under $200</i></li><li><i>direct flights to Doha</i></li><li><i>cheapest day to fly to Goa</i></li><li><i>best time to visit Japan</i>, <i>what to pack</i></li><li><i>9 days in Paris, Rome and Barcelona as PDF</i>: a multi-city plan you can download</li><li><i>know before you go Thailand</i>: plugs, emergency numbers, tipping, tap water, driving side, local phrases</li></ul>", mood: "happy" };
     // full plan: "5 days in Bali for 2", "plan a trip to Paris", "itinerary for Tokyo"
     var cityT = route ? route.to : cityFrom(text), dz = daysOf(t), wantsPlan = /plan|itinerary|schedule|day.by.day|organi[sz]e/.test(t), reg = regionOf(t), pq = parse(text);
     var tripWord = /trip|holiday|vacation|getaway|honeymoon|tour|visit/.test(t);
@@ -974,7 +1022,14 @@
     if (factCity && /currency|money|cash|exchange|rupee|dollar|dirham|\beuros?\b|\bpay\b|atm|card/.test(t) && !/how much|cost|price|budget|cheap/.test(t)) { lastCity = factCity; return moneyAnswer(factCity); }
     if (factCity && /language|speak|english/.test(t)) {
       var cf = window.LeoFacts && window.LeoFacts.COUNTRY[factCity.country]; lastCity = factCity;
-      if (cf) return { intent: "Language", mood: "happy", html: "<p>🗣 In <b>" + esc(factCity.country) + "</b> people speak <b>" + esc(cf[2]) + "</b>. A smile and a few local words like hello and thank you go a long way! 🐾</p>" };
+      var lw = window.LeoWorld && window.LeoWorld.get(factCity.country);
+      if (cf) return { intent: "Language", mood: "happy", html: "<p>🗣 In <b>" + esc(factCity.country) + "</b> people speak <b>" + esc(cf[2]) + "</b>.</p>" + (lw ? "<p>Two words that open every door: <b>" + esc(lw.hello) + "</b> (hello) and <b>" + esc(lw.thanks) + "</b> (thank you). 🐾</p>" : "<p>A smile and a few local words like hello and thank you go a long way! 🐾</p>") };
+    }
+    var wq = worldAsk(t);
+    if (wq) {
+      var wc = factCity || (wq === "phrase" && langCountry(t)) || null;
+      if (wc) { if (wc.code) lastCity = wc; var wa = worldAnswer(wq, wc, homeA); if (wa) return wa; }
+      else return { intent: "Know before you go", mood: "curious", html: "<p>Which country? 🐾 Try <i>plug type in Japan</i>, <i>emergency number in Thailand</i>, <i>do people tip in Dubai</i> or <i>know before you go Paris</i>.</p>" };
     }
     if (/safe(st|ty)?\b|dangerous|crime/.test(t)) {
       var SAFE = (window.LeoFacts && window.LeoFacts.SAFE) || [];
@@ -992,6 +1047,14 @@
     if (!cityT && reg && (dz || wantsPlan || tripWord)) {
       var rp = buildPlan(reg[3].map(function (c) { return M.airport(c); }), { days: dz || 9, ppl: travellers(t) || 1, stars: styleOf(t) || 3, month: month, home: pq.home || home, budget: pq.budget });
       if (rp) { rp.html = "<p>" + reg[1] + " is big, so I planned a classic route for you. 🐾</p>" + rp.html; return rp; }
+    }
+    // several places in one trip: "9 days in Paris, Rome and Barcelona", "Tokyo then Kyoto"
+    if ((dz || wantsPlan) && !/\bor\b|\bvs\b|versus|compare|which|better/.test(t)) {
+      var mc = citiesIn(t.replace(/→|->|\bthen\b/g, ",")).filter(function (c) { return c.code !== home; });
+      if (mc.length > 1) {
+        var mp = buildPlan(mc.slice(0, 5), { days: Math.max(dz || 0, mc.length * 3), ppl: travellers(t) || 1, stars: styleOf(t) || 3, month: month, home: home, budget: pq.budget });
+        if (mp) { if (dz && dz < mc.length * 3) mp.html = "<p>" + dz + " days is short for " + mc.length + " places, so I made it " + Math.max(dz, mc.length * 3) + " days (about 3 per city). Say <i>" + dz + " days</i> again for fewer stops. 🐾</p>" + mp.html; return mp; }
+      }
     }
     if (cityT && cityT.code !== home && (dz || wantsPlan || (pq.budget && tripWord))) {
       var pr = buildPlan([cityT], { days: dz || 5, ppl: travellers(t) || 1, stars: styleOf(t) || 3, month: month, home: home, budget: pq.budget });
@@ -1142,9 +1205,17 @@
     chatLog.push({ role: "user", text: text });
     var wait = log('<span class="dots"><i></i><i></i><i></i></span> <span class="wt">Leo is thinking…</span>', "leo thinking");
     setMood("curious");
-    var started = Date.now(), fixed = fixTypos(text), rs = resolve(fixed), parts = !rs && splitAsk(fixed), q = rs && rs.q ? rs.q : fixed;
+    var lowT = text.toLowerCase(), wantPdf = /\bpdf\b|(download|print|save|export) (the |my |this |that |our )?(trip )?(plan|itinerary)/.test(lowT);
+    var pdfRest = wantPdf ? lowT.replace(/\b(make|create|generate|export|give|send|get|download|print|save|share|me|us|a|an|the|of|this|that|my|our|plan|plans|list|itinerary|trip|pdf|as|in|into|to|please|pls|it|file|document|can|you|could|leo|for|now|version|copy|and|with)\b/g, " ").replace(/[^a-z0-9]+/g, "") : "";
+    var base = wantPdf && pdfRest ? text.replace(/\b(as|in|into|to)\s+(a\s+)?pdf\b|\bpdf\s+(of|for)\b|\bpdf\b/gi, " ").replace(/\s+/g, " ").trim() : text;
+    var started = Date.now(), fixed = fixTypos(base), rs = wantPdf && !pdfRest ? null : resolve(fixed), parts = !rs && !wantPdf && splitAsk(fixed), q = rs && rs.q ? rs.q : fixed;
     var job;
-    if (rs && rs.book) {
+    if (wantPdf && !pdfRest) {
+      var plans = $("leo-log").querySelectorAll(".lp-plan"), lastPl = plans[plans.length - 1];
+      job = !lastPl ? Promise.resolve({ html: "<p>📄 I can make a PDF of any trip plan! Ask me for one first, like <i>Plan 5 days in Bali for 2 as PDF</i>. 🐾</p>" + btns([["🌴 Bali 5 days (PDF)", 'data-ask="Plan 5 days in Bali as PDF"'], ["🗼 Paris 4 days (PDF)", 'data-ask="Plan 4 days in Paris as PDF"']]), mood: "curious", got: false })
+        : window.PlanPDF ? window.PlanPDF.make(lastPl).then(function (r) { return { html: r.ok ? "<p>📄 Done! <b>" + esc(r.name) + "</b> is downloading (" + r.pages + " page" + (r.pages > 1 ? "s" : "") + "). It has every day, the hotels, the budget and the know-before-you-go tips. 🐾</p>" : "<p>📄 I opened the print window. Choose <b>Save as PDF</b> to keep your plan. 🐾</p>", mood: "excited", got: false }; })
+        : Promise.resolve({ html: "<p>Oops, PDFs aren't working right now. Try <b>📋 Copy plan</b> instead. 🐾</p>", mood: "sad", got: false });
+    } else if (rs && rs.book) {
       job = Promise.resolve(ctx.fly ? (function () { var p = ctx.fly.split("|"); setTimeout(function () { window.DD.flyTo(p[0], p[1]); if (innerWidth < 700) toggle(false); }, 700); var a = M.airport(p[0]); return { html: "<p>On it! ✈ Opening live flights to <b>" + esc(a ? a.city : p[0]) + "</b> for " + nice(p[1]) + ". Pick your flight and tap through to book with the airline or a trusted site. 🐾</p>", mood: "excited", got: false }; })()
         : ctx.hotels ? (function () { setTimeout(function () { window.DD.hotelsIn(ctx.hotels); }, 700); return { html: "<p>Opening hotels for you! 🏨🐾</p>", mood: "excited", got: false }; })()
         : { html: "<p>Book what, buddy? 🐾 Tell me where first, like <i>flights to Bali in March</i>.</p>", mood: "curious", got: false });
@@ -1167,6 +1238,11 @@
         setMood(res.mood || "happy", 2600); if (res.mood === "excited") fx(["✈", "✨"], 2, "heart"); if (res.mood === "love") fx(["💛", "💗"], 3, "heart");
         st.joy = Math.min(100, st.joy + 4); save(); meters();
         if (window.Guru && window.Guru.heard) window.Guru.heard(q, res, ctx.city);
+        if (wantPdf && pdfRest && window.PlanPDF) {
+          var npl = wait.querySelector(".lp-plan");
+          if (npl) window.PlanPDF.make(npl).then(function (r) { log(r.ok ? "📄 Here's your PDF: <b>" + esc(r.name) + "</b> is downloading! 🐾" : "📄 Choose <b>Save as PDF</b> in the print window. 🐾", "leo"); woof("yips"); });
+          else log("📄 I can only make PDFs of trip plans. Ask me something like <i>Plan 5 days in Bali as PDF</i>. 🐾", "leo");
+        }
         asking = false;
       }, Math.max(0, 650 - (Date.now() - started)));
     });

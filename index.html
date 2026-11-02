@@ -709,6 +709,8 @@ header.top.scrolled { background: var(--glass-hi); box-shadow: 0 12px 30px -18px
 
 .lp-dn em { font-style: normal; font-size: 10.5px; color: var(--mute); }
 .lp-miss { border: 1px dashed var(--gold); border-radius: 12px; padding: 8px 10px; font-size: 12.5px; }
+.lp-kb { margin-top: 8px; border-style: solid; border-color: var(--line); }
+.lp-kb li { margin-bottom: 4px; }
 .lp-gd { margin: 6px 0; } .lp-gd > b { font-size: 13px; } .lp-gd p { margin: 2px 0 0; font-size: 13px; }
 .lp-ok { color: #2e8b57; font-weight: 700; font-size: 13px; margin: 2px 0; }
 .lp-warn { color: #c0563b; font-weight: 700; font-size: 13px; margin: 2px 0; }
@@ -822,6 +824,21 @@ header.top.scrolled { background: var(--glass-hi); box-shadow: 0 12px 30px -18px
 @media (prefers-reduced-motion: reduce) { .scroll-line { display: none; } }
 @media (max-width: 700px) { .bruno-dock { width: 100px; } }
 @media (prefers-reduced-motion: reduce) { .b-tail, .b-head, .b-tongue { animation: none; } }
+
+/* phone shake, turn and tilt (shake.js) */
+.leo-btn, .bruno-btn { rotate: var(--dd-lean, 0deg); transition: rotate .35s cubic-bezier(.3,.7,.4,1); transform-origin: 50% 90%; }
+.leo-dock.shaken .leo, .bruno-dock.shaken .bruno-btn > svg { animation: dd-shake 1s cubic-bezier(.36,.07,.19,.97); }
+.leo-dock.tumble .leo, .bruno-dock.tumble .bruno-btn > svg { animation: dd-tumble 1.3s cubic-bezier(.3,.7,.3,1); transform-origin: 50% 60%; }
+.leo-dock.roll .leo, .bruno-dock.roll .bruno-btn > svg { animation: dd-roll 1.2s cubic-bezier(.34,1.3,.5,1); transform-origin: 50% 70%; }
+@keyframes dd-shake { 0%,100% { transform: none; } 10%,50%,90% { transform: translate(-7px,2px) rotate(-8deg); } 30%,70% { transform: translate(7px,-2px) rotate(8deg); } }
+@keyframes dd-tumble { 0% { transform: none; } 25% { transform: translateY(-34px) rotate(-30deg); } 60% { transform: translateY(-10px) rotate(-330deg); } 80% { transform: translateY(4px) rotate(-360deg) scale(1.06,.9); } 100% { transform: rotate(-360deg); } }
+@keyframes dd-roll { 0% { transform: none; } 20% { transform: rotate(-12deg) scale(1.05); } 70% { transform: translateY(-22px) rotate(372deg); } 100% { transform: rotate(360deg); } }
+.dz-stars { position: absolute; left: 50%; top: 4px; width: 0; height: 0; pointer-events: none; z-index: 3; }
+.dz-stars i { position: absolute; font-style: normal; font-size: 15px; animation: dz-orbit 1.1s linear infinite, dz-fade 3.2s ease forwards; }
+.dz-stars i:nth-child(2) { animation-delay: -.37s, 0s; } .dz-stars i:nth-child(3) { animation-delay: -.74s, 0s; }
+@keyframes dz-orbit { from { transform: rotate(0deg) translateX(30px) rotate(0deg) scaleY(.55); } to { transform: rotate(360deg) translateX(30px) rotate(-360deg) scaleY(.55); } }
+@keyframes dz-fade { 0%,80% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .leo-btn, .bruno-btn { rotate: none; } }
 </style>
 </head>
 <body>
@@ -918,18 +935,21 @@ header.top.scrolled { background: var(--glass-hi); box-shadow: 0 12px 30px -18px
 <datalist id="airports"></datalist>
 <datalist id="cities"></datalist>
 
-<script src="mock.js?v=mvzbdsxp"></script>
-<script src="hotels.js?v=mvzbdsxp"></script>
-<script src="art.js?v=mvzbdsxp"></script>
-<script src="fleet.js?v=mvzbdsxp"></script>
-<script src="app.js?v=mvzbdsxp"></script>
-<script src="fx.js?v=mvzbdsxp"></script>
-<script src="anim.js?v=mvzbdsxp"></script>
-<script src="sights.js?v=mvzbdsxp"></script>
-<script src="leo-facts.js?v=mvzbdsxp"></script>
-<script src="buddy.js?v=mvzbdsxp"></script>
-<script src="bruno.js?v=mvzbdsxp"></script>
-<script src="motion2.js?v=mvzbdsxp"></script>
+<script src="mock.js?v=mvzk1ir1"></script>
+<script src="hotels.js?v=mvzk1ir1"></script>
+<script src="art.js?v=mvzk1ir1"></script>
+<script src="fleet.js?v=mvzk1ir1"></script>
+<script src="app.js?v=mvzk1ir1"></script>
+<script src="fx.js?v=mvzk1ir1"></script>
+<script src="anim.js?v=mvzk1ir1"></script>
+<script src="sights.js?v=mvzk1ir1"></script>
+<script src="leo-facts.js?v=mvzk1ir1"></script>
+<script src="leo-world.js?v=mvzk1ir1"></script>
+<script src="buddy.js?v=mvzk1ir1"></script>
+<script src="planpdf.js?v=mvzk1ir1"></script>
+<script src="bruno.js?v=mvzk1ir1"></script>
+<script src="shake.js?v=mvzk1ir1"></script>
+<script src="motion2.js?v=mvzk1ir1"></script>
 
 </body>
 </html>
