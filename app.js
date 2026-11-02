@@ -207,6 +207,7 @@
     h += '<div class="status">' + (live ? '<span class="pill live">Live prices · ' + esc(res.source) + "</span>" : '<span class="pill est">Estimated fares</span>') +
       "<span>" + all.length + " options for " + state.q.adults + " traveller" + (state.q.adults > 1 ? "s" : "") + ", " + esc(res.from.city) + " to " + esc(res.to.city) + (res.distanceKm ? " · " + res.distanceKm.toLocaleString("en-US") + " km" : "") + "</span>" +
       '<button class="track" data-track="1">' + (isSaved(leg) ? "★ Tracking price" : "☆ Track this price") + "</button></div>";
+    h += '<div class="route-sim" data-from="' + res.from.code + '" data-to="' + res.to.code + '" data-mins="' + (fastest ? fastest.durationMin : 0) + '" data-direct="' + (all.some(function (o) { return !o.stops; }) ? 1 : 0) + '" data-km="' + (res.distanceKm || 0) + '"></div>';
     h += '<div class="panel"><h2>Compare this trip on every major site</h2><p>' + (live ? "Fares below are live. " : "Fares below are estimates. ") + "Each button opens the site with " + q.from + " → " + q.to + ", " + nice(q.date) + (q.ret ? " to " + nice(q.ret) : "") + " filled in.</p>" + sitesHtml(M.links.flights(q)) + "</div>";
 
     if (res.calendar && res.calendar.length) {
@@ -553,6 +554,7 @@
       return null;
     },
     pickDay: function (date) { rerunLeg(state.legIdx, date); },
+    setHome: function (code) { if (!M.airport(code)) return; state.legsForm[0].from = code; renderLegsForm(); },
     hotelsIn: function (code) {
       var c = M.airport(code); if (!c) return;
       var first = state.legsForm[0], ci = first && first.to === code ? first.date : plus(30), co = state.trip === "return" && state.ret > ci ? state.ret : plus(3, ci);

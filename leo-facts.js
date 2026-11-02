@@ -97,5 +97,36 @@
   ];
   // Commonly ranked among the safest countries (Global Peace Index top tier, recent years).
   var SAFE = ["Iceland", "Ireland", "Austria", "New Zealand", "Singapore", "Switzerland", "Portugal", "Denmark", "Japan", "Slovenia"];
-  root.LeoFacts = { TAGS: TAGS, COUNTRY: COUNTRY, ALIAS: ALIAS, REGIONS: REGIONS, SAFE: SAFE };
+  // Main time zone per country, with airport overrides for big countries.
+  var TZ = { "United States": "America/New_York", "Canada": "America/Toronto", "Mexico": "America/Mexico_City", "Brazil": "America/Sao_Paulo", "Argentina": "America/Argentina/Buenos_Aires",
+    "Colombia": "America/Bogota", "United Kingdom": "Europe/London", "France": "Europe/Paris", "Germany": "Europe/Berlin", "Netherlands": "Europe/Amsterdam", "Spain": "Europe/Madrid",
+    "Italy": "Europe/Rome", "Türkiye": "Europe/Istanbul", "United Arab Emirates": "Asia/Dubai", "Qatar": "Asia/Qatar", "Egypt": "Africa/Cairo", "Kenya": "Africa/Nairobi",
+    "South Africa": "Africa/Johannesburg", "Nigeria": "Africa/Lagos", "India": "Asia/Kolkata", "Sri Lanka": "Asia/Colombo", "Singapore": "Asia/Singapore", "Thailand": "Asia/Bangkok",
+    "Malaysia": "Asia/Kuala_Lumpur", "China": "Asia/Shanghai", "Japan": "Asia/Tokyo", "South Korea": "Asia/Seoul", "Australia": "Australia/Sydney", "New Zealand": "Pacific/Auckland",
+    "Indonesia": "Asia/Makassar", "Maldives": "Indian/Maldives", "Oman": "Asia/Muscat", "Bahrain": "Asia/Bahrain", "Kuwait": "Asia/Kuwait", "Saudi Arabia": "Asia/Riyadh",
+    "Jordan": "Asia/Amman", "Israel": "Asia/Jerusalem", "Lebanon": "Asia/Beirut", "Azerbaijan": "Asia/Baku", "Uzbekistan": "Asia/Tashkent", "Kazakhstan": "Asia/Almaty",
+    "Nepal": "Asia/Kathmandu", "Bangladesh": "Asia/Dhaka", "Pakistan": "Asia/Karachi", "Philippines": "Asia/Manila", "Vietnam": "Asia/Ho_Chi_Minh", "Cambodia": "Asia/Phnom_Penh",
+    "Myanmar": "Asia/Yangon", "Taiwan": "Asia/Taipei", "Mongolia": "Asia/Ulaanbaatar", "Switzerland": "Europe/Zurich", "Austria": "Europe/Vienna", "Portugal": "Europe/Lisbon",
+    "Ireland": "Europe/Dublin", "Denmark": "Europe/Copenhagen", "Sweden": "Europe/Stockholm", "Norway": "Europe/Oslo", "Finland": "Europe/Helsinki", "Iceland": "Atlantic/Reykjavik",
+    "Belgium": "Europe/Brussels", "Czechia": "Europe/Prague", "Poland": "Europe/Warsaw", "Hungary": "Europe/Budapest", "Romania": "Europe/Bucharest", "Greece": "Europe/Athens",
+    "Malta": "Europe/Malta", "Cyprus": "Asia/Nicosia", "Georgia": "Asia/Tbilisi", "Russia": "Europe/Moscow", "Ethiopia": "Africa/Addis_Ababa", "Tanzania": "Africa/Dar_es_Salaam",
+    "Morocco": "Africa/Casablanca", "Tunisia": "Africa/Tunis", "Algeria": "Africa/Algiers", "Ghana": "Africa/Accra", "Senegal": "Africa/Dakar", "Uganda": "Africa/Kampala",
+    "Rwanda": "Africa/Kigali", "Angola": "Africa/Luanda", "Mauritius": "Indian/Mauritius", "Seychelles": "Indian/Mahe", "Puerto Rico": "America/Puerto_Rico", "Bahamas": "America/Nassau",
+    "Jamaica": "America/Jamaica", "Panama": "America/Panama", "Costa Rica": "America/Costa_Rica", "Cuba": "America/Havana", "Peru": "America/Lima", "Chile": "America/Santiago",
+    "Ecuador": "America/Guayaquil", "Venezuela": "America/Caracas", "Uruguay": "America/Montevideo", "Bolivia": "America/La_Paz", "Fiji": "Pacific/Fiji", "French Polynesia": "Pacific/Tahiti" };
+  var TZ_AIRPORT = { LAX: "America/Los_Angeles", SFO: "America/Los_Angeles", SEA: "America/Los_Angeles", LAS: "America/Los_Angeles", PHX: "America/Phoenix", DEN: "America/Denver",
+    ORD: "America/Chicago", DFW: "America/Chicago", IAH: "America/Chicago", MSP: "America/Chicago", HNL: "Pacific/Honolulu", YVR: "America/Vancouver", YYC: "America/Edmonton",
+    CUN: "America/Cancun", PER: "Australia/Perth", ADL: "Australia/Adelaide", BNE: "Australia/Brisbane", OOL: "Australia/Brisbane", CNS: "Australia/Brisbane", MEL: "Australia/Melbourne",
+    CGK: "Asia/Jakarta", ALA: "Asia/Almaty", PPT: "Pacific/Tahiti" };
+  // Hand-picked lists for kinds of trips people ask about.
+  var LISTS = {
+    food: ["BKK", "NRT", "IST", "FCO", "CDG", "BOM", "SIN", "KUL", "HKG", "MEX", "LIM", "BCN", "ICN", "HAN", "SGN", "DEL", "TPE", "KIX", "LIS", "COK"],
+    romantic: ["CDG", "VCE", "MLE", "DPS", "PRG", "SEZ", "MRU", "KIX", "NCE", "LIS", "ATH", "HKT", "PPT", "BUD", "JAI"],
+    kids: ["SIN", "MCO", "NRT", "LHR", "OOL", "HKG", "KUL", "CPH", "SYD", "LGK", "DPS", "BKK", "LAX", "MLA"],
+    shopping: ["DXB", "SIN", "HKG", "BKK", "IST", "LHR", "CDG", "MXP", "NRT", "KUL", "JFK", "ICN"],
+    party: ["BKK", "IBZ", "BCN", "LAS", "GOI", "BER", "AMS", "MIA", "BUD", "PRG", "HKT", "GIG"]
+  };
+  // Countries where yellow fever vaccination is recommended or can be required on arrival.
+  var YELLOW = ["Kenya", "Uganda", "Rwanda", "Tanzania", "Ghana", "Senegal", "Nigeria", "Ethiopia", "Angola", "Brazil", "Colombia", "Peru", "Ecuador", "Bolivia", "Venezuela", "Panama"];
+  root.LeoFacts = { TAGS: TAGS, COUNTRY: COUNTRY, ALIAS: ALIAS, REGIONS: REGIONS, SAFE: SAFE, TZ: TZ, TZ_AIRPORT: TZ_AIRPORT, LISTS: LISTS, YELLOW: YELLOW };
 })(window);

@@ -148,7 +148,12 @@
   // Which real airlines plausibly fly A -> B: direct if one end is their hub, one stop through their hub otherwise.
   var BIG = {};
   AIRLINES.forEach(function (al) { if (!al.lowcost) al.hubs.forEach(function (h) { BIG[h] = 1; }); });
-  ["LHR", "CDG", "JFK", "LAX", "SFO", "ORD", "SYD", "MEL", "SIN", "HKG", "NRT", "BKK", "DEL", "BOM", "JNB", "GRU", "MEX", "YYZ", "FRA", "AMS"].forEach(function (h) { BIG[h] = 1; });
+  ["LHR", "CDG", "JFK", "LAX", "SFO", "ORD", "SYD", "MEL", "SIN", "HKG", "NRT", "BKK", "DEL", "BOM", "JNB", "GRU", "MEX", "YYZ", "FRA", "AMS", "BLR", "HYD", "MAA", "KUL", "CGK", "MNL", "ICN", "PVG", "PEK", "TPE", "IST", "CAI", "NBO", "ADD", "CPT", "MIA", "ATL", "IAD", "BOS", "SEA", "DFW", "IAH", "EWR", "YVR", "MAD", "BCN", "FCO", "MUC", "ZRH", "VIE", "CPH", "MLE", "DPS", "AKL", "BNE", "PER", "CMB", "KTM", "DAC", "KHI", "LHE", "ISB", "RUH", "JED", "AMM", "TLV", "BEY", "GYD", "TAS", "ALA"].forEach(function (h) { BIG[h] = 1; });
+  delete BIG.KGL; delete BIG.NAN;
+  // Gulf carriers really do fly nonstop from their hub to most cities within about 6,500 km.
+  var GULF = { EK: 1, QR: 1, EY: 1, FZ: 1, G9: 1, WY: 1, GF: 1, SV: 1, KU: 1, RJ: 1 };
+  // Airlines with a narrow network: nonstops only to these places from their hub, and no long connections.
+  var ONLY = { VS: "JFK LAX SFO MIA ATL BOS IAD SEA LAS MCO EWR DEL BOM BLR LOS JNB CPT MLE NAS MBJ RUH", WB: "LHR BRU DXB DOH NBO LOS ACC EBB JNB DAR ZNZ ADD", AS: "JFK BOS LAX SFO SEA LAS PHX DEN ORD DFW IAD MCO HNL MEX CUN YVR", WN: "LAS PHX DEN DFW IAH ATL MCO BOS MIA LAX SFO ORD MSP DTW PHL SEA HNL CUN", B6: "BOS JFK LAX SFO MIA MCO LAS LHR CDG AMS DUB EDI CUN SJU NAS MBJ" };
   function carriersFor(from, to, dist) {
     var list = [];
     var india = from.country === "India" || to.country === "India", pak = from.country === "Pakistan" || to.country === "Pakistan";
@@ -161,9 +166,12 @@
       if (atFrom || atTo) {
         // long nonstops only between big hubs; small airports connect first
         var other = atFrom ? to : from;
-        if (dist <= 6500 || BIG[other.code]) { list.push({ al: al, via: [] }); return; }
+        var ok = ONLY[al.code] ? ONLY[al.code].indexOf(other.code) >= 0 : GULF[al.code] ? dist <= 6500 || BIG[other.code] : al.lowcost ? dist <= 4200 : dist <= 3000 || BIG[other.code];
+        if (ok) { list.push({ al: al, via: [] }); return; }
+        if (ONLY[al.code]) return;
         return;
       }
+      if (ONLY[al.code] && !(ONLY[al.code].indexOf(from.code) >= 0 && ONLY[al.code].indexOf(to.code) >= 0)) return;
       var best = null;
       al.hubs.forEach(function (hc) {
         var h = airport(hc); if (!h) return;
