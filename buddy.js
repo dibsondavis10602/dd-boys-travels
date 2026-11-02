@@ -90,7 +90,7 @@
     '<div class="lp-stats"><label>Tummy<span class="meter"><i id="leo-hunger"></i></span></label><label>Joy<span class="meter joy"><i id="leo-joy"></i></span></label></div>' +
     '<div class="lp-actions"><button type="button" data-leo="feed">🦴 Feed</button><button type="button" data-leo="fetch">🎾 Play fetch</button><button type="button" data-leo="pet">🤍 Pet</button><button type="button" data-leo="suggest">✈ Suggest a trip</button></div>' +
     '<div class="lp-log" id="leo-log" aria-live="polite"></div>' +
-    '<form class="lp-ask" id="leo-form"><input id="leo-input" type="text" autocomplete="off" placeholder="Ask Leo: honeymoon in December, under $500…" maxlength="200"><button type="button" class="lp-mic" id="leo-mic" aria-label="Talk to Leo" title="Talk to Leo" hidden>🎤</button><button type="submit" aria-label="Send">➤</button></form>';
+    '<form class="lp-ask" id="leo-form"><input id="leo-input" type="text" autocomplete="off" placeholder="Ask Leo: honeymoon in December, under $500…" maxlength="200"><button type="submit" aria-label="Send">➤</button></form>';
   document.body.appendChild(panel);
 
 
@@ -389,24 +389,7 @@
   $("leo-form").addEventListener("submit", function (e) { e.preventDefault(); var v = $("leo-input").value.trim(); if (!v) return; $("leo-input").value = ""; ask(v); });
   setVoice(soundOn);
   $("leo-voice").addEventListener("click", function () { setVoice(!soundOn); if (soundOn) woof("yips"); });
-  // 🎤 talk to Leo (Chrome, Edge, Safari)
-  var Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (Rec) {
-    var mic = $("leo-mic"), rec = null, listening = false; mic.hidden = false;
-    mic.addEventListener("click", function () {
-      if (listening) { rec && rec.stop(); return; }
-      rec = new Rec(); rec.lang = navigator.language || "en-US"; rec.interimResults = true; rec.maxAlternatives = 1;
-      rec.onstart = function () { listening = true; mic.classList.add("on"); setMood("curious"); say("I'm all ears! 👂", 2500); };
-      rec.onresult = function (ev) {
-        var r = ev.results[ev.results.length - 1], t = r[0].transcript;
-        $("leo-input").value = t;
-        if (r.isFinal) { $("leo-input").value = ""; ask(t.trim()); }
-      };
-      rec.onerror = function (ev) { if (ev.error === "not-allowed" || ev.error === "service-not-allowed") say("I can't hear you. Please allow the microphone 🎤", 3600); };
-      rec.onend = function () { listening = false; mic.classList.remove("on"); };
-      try { rec.start(); } catch (e) {}
-    });
-  }
+
 
   // ---------- trip ideas ----------
   var THEME = {
