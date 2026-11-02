@@ -797,10 +797,10 @@ header.top.scrolled { background: var(--glass-hi); box-shadow: 0 12px 30px -18px
 @keyframes wd-rise { from { opacity: 0; transform: translateY(.45em) rotate(2deg); filter: blur(6px); } }
 .motion2 #headline em { display: inline-block; padding-right: .08em; animation: wd-rise .9s cubic-bezier(.2,.8,.2,1) both, sheen 6s ease-in-out infinite; animation-delay: calc(var(--wi, 3) * 90ms + 150ms), 1.4s; }
 @keyframes shimmer { from { background-position: 120% 0; } to { background-position: -130% 0; } }
-.sky-plane { position: fixed; left: 0; top: 120px; z-index: 1; width: 34px; pointer-events: none; opacity: 0; }
-.sky-plane svg { width: 34px; height: 17px; display: block; fill: var(--gold-hi); filter: drop-shadow(0 2px 3px rgba(0,0,0,.3)); position: relative; z-index: 1; }
-.sky-plane i { position: absolute; right: 26px; top: 8px; width: 220px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.7)); }
-.sky-plane.rtl svg { transform: scaleX(-1); } .sky-plane.rtl i { right: auto; left: 26px; background: linear-gradient(270deg, transparent, rgba(255,255,255,.7)); }
+.sky-plane { position: fixed; left: 0; top: 120px; z-index: 1; width: 40px; pointer-events: none; opacity: 0; }
+.sky-plane svg { width: 40px; height: 32px; display: block; fill: var(--gold-hi); filter: drop-shadow(0 2px 3px rgba(0,0,0,.3)); position: relative; z-index: 1; }
+.sky-plane i { position: absolute; right: 30px; top: 15px; width: 220px; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,.7)); }
+.sky-plane.rtl svg { transform: scaleX(-1); } .sky-plane.rtl i { right: auto; left: 30px; background: linear-gradient(270deg, transparent, rgba(255,255,255,.7)); }
 .sky-plane.go { animation: sky-ltr 14s linear forwards; } .sky-plane.rtl.go { animation-name: sky-rtl; }
 @keyframes sky-ltr { 0% { opacity: 0; transform: translate(-260px, 20px); } 8% { opacity: .85; } 92% { opacity: .85; } 100% { opacity: 0; transform: translate(calc(100vw + 260px), -40px); } }
 @keyframes sky-rtl { 0% { opacity: 0; transform: translate(calc(100vw + 260px), 20px); } 8% { opacity: .85; } 92% { opacity: .85; } 100% { opacity: 0; transform: translate(-260px, -40px); } }
@@ -914,17 +914,17 @@ header.top.scrolled { background: var(--glass-hi); box-shadow: 0 12px 30px -18px
 <datalist id="airports"></datalist>
 <datalist id="cities"></datalist>
 
-<script src="mock.js?v=mvzb6xf0"></script>
-<script src="hotels.js?v=mvzb6xf0"></script>
-<script src="art.js?v=mvzb6xf0"></script>
-<script src="app.js?v=mvzb6xf0"></script>
-<script src="fx.js?v=mvzb6xf0"></script>
-<script src="anim.js?v=mvzb6xf0"></script>
-<script src="sights.js?v=mvzb6xf0"></script>
-<script src="leo-facts.js?v=mvzb6xf0"></script>
-<script src="buddy.js?v=mvzb6xf0"></script>
-<script src="bruno.js?v=mvzb6xf0"></script>
-<script src="motion2.js?v=mvzb6xf0"></script>
+<script src="mock.js?v=mvzb9jhj"></script>
+<script src="hotels.js?v=mvzb9jhj"></script>
+<script src="art.js?v=mvzb9jhj"></script>
+<script src="app.js?v=mvzb9jhj"></script>
+<script src="fx.js?v=mvzb9jhj"></script>
+<script src="anim.js?v=mvzb9jhj"></script>
+<script src="sights.js?v=mvzb9jhj"></script>
+<script src="leo-facts.js?v=mvzb9jhj"></script>
+<script src="buddy.js?v=mvzb9jhj"></script>
+<script src="bruno.js?v=mvzb9jhj"></script>
+<script src="motion2.js?v=mvzb9jhj"></script>
 
 </body>
 </html>

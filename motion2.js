@@ -12,7 +12,8 @@
       return Math.round((Date.UTC(p.year, p.month - 1, p.day, p.hour % 24, p.minute) - Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes())) / 60000); } catch (e) { return null; }
   }
   function hm(m) { return Math.floor(m / 60) + "h " + String(m % 60).padStart(2, "0") + "m"; }
-  var PLANE = "M-14 -2 L4 -2 L12 -9 L16 -9 L10 -2 L18 -2 Q22 0 18 2 L10 2 L16 9 L12 9 L4 2 L-14 2 L-18 6 L-21 6 L-18 0 L-21 -6 L-18 -6 Z";
+  // airliner seen from above, nose pointing right: swept-back wings, tailplane, two engines
+  var PLANE = "M24 0 Q23 -2.6 19 -2.6 L6 -2.6 L-6 -19 L-10 -19 L-4 -2.6 L-15 -2.6 L-20 -9 L-23 -9 L-21 -2 L-24 -1.2 Q-25.5 0 -24 1.2 L-21 2 L-23 9 L-20 9 L-15 2.6 L-4 2.6 L-10 19 L-6 19 L6 2.6 L19 2.6 Q23 2.6 24 0 Z M5 -9.6 L-0.5 -9.6 L-0.5 -6.6 L5 -6.6 Z M5 6.6 L-0.5 6.6 L-0.5 9.6 L5 9.6 Z";
 
   // ---------- flight route simulation ----------
   function buildRoute(el) {
@@ -81,7 +82,7 @@
 
   // ---------- a little plane crosses the sky now and then ----------
   var sky = document.createElement("div"); sky.className = "sky-plane"; sky.setAttribute("aria-hidden", "true");
-  sky.innerHTML = '<svg viewBox="-24 -12 48 24"><path d="' + PLANE + '"/></svg><i></i>';
+  sky.innerHTML = '<svg viewBox="-26 -21 52 42"><path d="' + PLANE + '"/></svg><i></i>';
   document.body.appendChild(sky);
   function fly() {
     if (document.hidden || scrollY > innerHeight) return;
