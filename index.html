@@ -697,6 +697,45 @@ header.top.scrolled { background: var(--glass-hi); box-shadow: 0 12px 30px -18px
 .lp-cost td:last-child { text-align: right; font-weight: 700; white-space: nowrap; padding-left: 10px; }
 .lp-cost tr.tot td { font-size: 15px; color: var(--gold-hi); border-top: 2px solid var(--gold); }
 .lp-cost tr.pp td { font-size: 12px; color: var(--mute); border-top: 0; padding-top: 0; }
+
+.lp-dn em { font-style: normal; font-size: 10.5px; color: var(--mute); }
+.lp-miss { border: 1px dashed var(--gold); border-radius: 12px; padding: 8px 10px; font-size: 12.5px; }
+.lp-gd { margin: 6px 0; } .lp-gd > b { font-size: 13px; } .lp-gd p { margin: 2px 0 0; font-size: 13px; }
+.lp-ok { color: #2e8b57; font-weight: 700; font-size: 13px; margin: 2px 0; }
+.lp-warn { color: #c0563b; font-weight: 700; font-size: 13px; margin: 2px 0; }
+
+/* Bruno, Leo's best friend: a black Indian street dog */
+.bruno-dock { position: fixed; left: -200px; top: 0; width: 128px; z-index: 29; display: none; pointer-events: none; }
+.bruno-dock.here { display: block; }
+.bruno-dock.hide { opacity: 0; }
+.bruno-btn { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.bruno { display: block; width: 100%; height: auto; overflow: visible; filter: drop-shadow(0 6px 10px rgba(0,0,0,.25)); }
+:root[data-theme="dark"] .bruno, :root:not([data-theme="light"]) .bruno { filter: drop-shadow(0 0 1px rgba(255,255,255,.35)) drop-shadow(0 6px 10px rgba(0,0,0,.35)); }
+.bruno-dock.flip .bruno { transform: scaleX(-1); }
+.b-tail { transform-origin: 160px 150px; animation: b-wag .5s ease-in-out infinite alternate; }
+.bruno-dock.happy .b-tail, .bruno-dock.walking .b-tail { animation-duration: .16s; }
+.b-head { transform-origin: 110px 110px; animation: b-look 6s ease-in-out infinite; }
+.b-ear { transform-box: fill-box; transform-origin: 50% 100%; }
+.bruno-dock.happy .b-ear { animation: b-ear .3s ease-in-out 3 alternate; }
+.b-blink { opacity: 0; } .bruno-dock.blink .b-blink { opacity: 1; } .bruno-dock.blink .b-eyes { opacity: 0; }
+.b-tongue { transform-box: fill-box; transform-origin: 50% 0; animation: b-pant .35s ease-in-out infinite alternate; }
+.bruno-dock.walking .bruno-btn { animation: b-trot .28s ease-in-out infinite alternate; }
+.bruno-dock.walking .b-leg.l { animation: b-step .28s ease-in-out infinite alternate; }
+.bruno-dock.walking .b-leg.r { animation: b-step .28s ease-in-out infinite alternate-reverse; }
+.b-leg { transform-box: fill-box; transform-origin: 50% 0; }
+.bruno-dock.hop .bruno-btn { animation: l-hop .5s cubic-bezier(.3,.7,.4,1.3); }
+.bruno-bubble { position: absolute; left: 50%; bottom: calc(100% - 4px); translate: -50% 0; width: max-content; max-width: 210px; background: #17171b; color: #f4f1ea; border: 1px solid rgba(255,255,255,.15); border-radius: 14px; padding: 7px 11px; font-size: 13px; font-weight: 700; opacity: 0; transform: translateY(6px) scale(.9); transition: opacity .3s, transform .3s; pointer-events: none; }
+.bruno-bubble.show { opacity: 1; transform: none; }
+.bruno-heart { position: fixed; z-index: 31; font-size: 20px; pointer-events: none; animation: b-heart 1.4s ease-out forwards; }
+@keyframes b-wag { from { rotate: -10deg; } to { rotate: 14deg; } }
+@keyframes b-look { 0%, 70%, 100% { rotate: 0deg; } 78% { rotate: -6deg; } 88% { rotate: 5deg; } }
+@keyframes b-ear { to { transform: rotate(-8deg); } }
+@keyframes b-pant { from { transform: scaleY(.85); } to { transform: scaleY(1.12); } }
+@keyframes b-trot { from { translate: 0 0; } to { translate: 0 -5px; } }
+@keyframes b-step { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+@keyframes b-heart { from { opacity: 1; transform: translateY(0) scale(.8); } to { opacity: 0; transform: translateY(-70px) scale(1.3); } }
+@media (max-width: 700px) { .bruno-dock { width: 100px; } }
+@media (prefers-reduced-motion: reduce) { .b-tail, .b-head, .b-tongue { animation: none; } }
 </style>
 </head>
 <body>
@@ -793,14 +832,16 @@ header.top.scrolled { background: var(--glass-hi); box-shadow: 0 12px 30px -18px
 <datalist id="airports"></datalist>
 <datalist id="cities"></datalist>
 
-<script src="mock.js?v=mvz5txbu"></script>
-<script src="hotels.js?v=mvz5txbu"></script>
-<script src="art.js?v=mvz5txbu"></script>
-<script src="app.js?v=mvz5txbu"></script>
-<script src="fx.js?v=mvz5txbu"></script>
-<script src="anim.js?v=mvz5txbu"></script>
-<script src="sights.js?v=mvz5txbu"></script>
-<script src="buddy.js?v=mvz5txbu"></script>
+<script src="mock.js?v=mvz879mo"></script>
+<script src="hotels.js?v=mvz879mo"></script>
+<script src="art.js?v=mvz879mo"></script>
+<script src="app.js?v=mvz879mo"></script>
+<script src="fx.js?v=mvz879mo"></script>
+<script src="anim.js?v=mvz879mo"></script>
+<script src="sights.js?v=mvz879mo"></script>
+<script src="leo-facts.js?v=mvz879mo"></script>
+<script src="buddy.js?v=mvz879mo"></script>
+<script src="bruno.js?v=mvz879mo"></script>
 
 </body>
 </html>

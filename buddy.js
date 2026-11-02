@@ -133,6 +133,13 @@
       voiced(c, o, t + 0.01, d, [f0 * 0.8, f0 * 1.18, f0 * 0.6], [[1050, 5, 1], [2500, 7, 0.6], [3800, 9, 0.25]], 1);
       return d + 0.08;
     },
+    bigbark: function (c, o, t) { // Bruno: a medium dog's deeper "woof"
+      var f0 = 260 + Math.random() * 60, d = 0.17 + Math.random() * 0.04;
+      breath(c, o, t, 0.05, 1500, 0.7, 0.3);
+      voiced(c, o, t + 0.01, d, [f0 * 0.85, f0 * 1.15, f0 * 0.6], [[650, 5, 1], [1700, 6, 0.7], [2900, 8, 0.25]], 1.1);
+      return d + 0.1;
+    },
+    brunos: function (c, o, t) { var x = SOUND.bigbark(c, o, t); return x + 0.05 + SOUND.bigbark(c, o, t + x + 0.05); },
     yips: function (c, o, t) { var x = 0; for (var i = 0; i < 2 + (Math.random() < 0.5 ? 1 : 0); i++) x += SOUND.bark(c, o, t + x) + 0.03 + Math.random() * 0.05; return x; },
     whine: function (c, o, t) { // soft "hmmmm-eee" puppy whine
       var f = 900 + Math.random() * 200, d = 0.75;
@@ -408,6 +415,8 @@
   };
   var PALTHEME = { tropic: "beach", lagoon: "beach", savanna: "nature", nordic: "mountains", mist: "mountains", andes: "mountains", city: "city", desert: "culture" };
   function themesOf(code) {
+    var tg = window.LeoFacts && window.LeoFacts.TAGS[code];
+    if (tg) return tg.split(" ");
     var i = A && A.info ? A.info(code) : null, out = [];
     if (!i) return out;
     Object.keys(THEME).forEach(function (t) { if ((" " + THEME[t] + " ").indexOf(" " + i.comp + " ") >= 0) out.push(t); });
@@ -428,10 +437,10 @@
     var t = text.toLowerCase(), q = { themes: [], budget: 0, month: null, home: null, surprise: /surprise|random|anywhere/.test(t) };
     var m = t.match(/(?:under|below|less than|max|budget|\$|usd|aed|inr|₹)\s*\$?\s*([\d,]{2,7})/) || t.match(/([\d,]{3,6})\s*(?:\$|usd|dollars)/);
     if (m) q.budget = +m[1].replace(/,/g, "");
-    if (/beach|sea|island|sun|swim|honeymoon|relax|maldives|ocean/.test(t)) q.themes.push("beach");
-    if (/culture|history|temple|mosque|museum|heritage|ancient|art/.test(t)) q.themes.push("culture");
-    if (/mountain|snow|hike|trek|ski|cold|alps|himalaya/.test(t)) q.themes.push("mountains");
-    if (/city|shopping|nightlife|food|weekend|skyline/.test(t)) q.themes.push("city");
+    if (/beach|\bsea\b|island|sunny|swim|honeymoon|relax|ocean|snorkel|dive|diving/.test(t)) q.themes.push("beach");
+    if (/culture|history|historic|temple|mosque|museum|heritage|ancient|\bart\b/.test(t)) q.themes.push("culture");
+    if (/mountain|snow|hike|trek|\bski|alps|himalaya/.test(t)) q.themes.push("mountains");
+    if (/\bcity\b|cities|shopping|nightlife|skyline/.test(t)) q.themes.push("city");
     if (/safari|nature|wildlife|jungle|green|waterfall/.test(t)) q.themes.push("nature");
     MONTHS.forEach(function (mm, i) { if (new RegExp("\\b" + mm).test(t)) { var y = new Date().getUTCFullYear(), now = new Date().getUTCMonth(); q.month = (i < now ? y + 1 : y) + "-" + String(i + 1).padStart(2, "0"); } });
     var f = t.match(/from ([a-z .'-]{3,30})/);
@@ -453,7 +462,12 @@
     var budget = q.budget ? q.budget / (rate() || 1) : 0;
     if (budget) list = list.filter(function (c) { return c.price <= budget; });
     if (q.themes.length) list = list.filter(function (c) { return c.themes.some(function (x) { return q.themes.indexOf(x) >= 0; }); });
-    if (q.surprise) list.sort(function () { return Math.random() - 0.5; });
+    var rg = regionOf(text.toLowerCase());
+    if (rg) { var keep = {}; rg[3].forEach(function (c) { keep[M.airport(c).region] = 1; }); list = list.filter(function (c) { var a = M.airport(c.code); return a && (keep[a.region] || (rg[2] === "europe" && a.lat > 34 && a.lon > -25 && a.lon < 45)); }); }
+    if (q.surprise) {
+      var med = list.map(function (c) { return c.price; }).sort(function (a, b) { return a - b; })[Math.floor(list.length / 2)] || 999;
+      list = list.filter(function (c) { return c.price <= med * 2.2 && ["Venezuela", "Russia"].indexOf(c.country) < 0; }).sort(function () { return Math.random() - 0.5; });
+    }
     // Mix of styles: one pick per country, and try not to repeat the same kind of trip.
     var picks = [], seen = {}, kinds = {};
     list.forEach(function (c) { var k = c.themes[0] || "x"; if (picks.length < 3 && !seen[c.country] && (q.themes.length || !kinds[k] || list.length < 8)) { seen[c.country] = 1; kinds[k] = 1; picks.push(c); } });
@@ -461,7 +475,7 @@
     var home_ = M.airport(home);
     var reply;
     if (!picks.length) reply = "Hmm, my nose found nothing" + (q.budget ? " under that budget" : "") + ". Try a higher budget or another month? 🐾";
-    else reply = (q.surprise ? "Ooh, surprise! " : "Sniff sniff… found them! ") + "Best value " + (q.themes.length ? q.themes.join(" & ") + " " : "") + "trips from " + home_.city + " in " + monthName(month) + ":";
+    else reply = (q.surprise ? "Ooh, surprise! " : "Sniff sniff… found them! ") + "Best value " + (q.themes.length ? q.themes.join(" & ") + " " : "") + "trips" + (rg ? " in " + rg[1] : "") + " from " + home_.city + " in " + monthName(month) + (q.budget ? " under " + window.DD.money(budget) : "") + ":";
     return { reply: reply, picks: picks.map(function (c) { return { c: c, why: whyLocal(c, q.themes) }; }), mood: picks.length ? "excited" : "sad" };
   }
   function whyLocal(c, want) {
@@ -495,18 +509,26 @@
 
   var SEASON_CITY = { DPS: ["April to October", "Bali's dry, sunny season"], CGK: ["May to September", "the dry season"], RAK: ["March to May or September to November", "warm days without the summer heat"], CMN: ["April to October", "sunny and mild by the Atlantic"],
     CPT: ["November to March", "Cape Town's warm, dry summer"], JNB: ["March to May or September to November", "mild and sunny"], NRT: ["late March to May or October to November", "cherry blossoms or autumn leaves"], KTM: ["October to November or March to April", "clear mountain views"] };
+  var STOP = /^(the|and|for|from|with|trip|trips|cheap|cheapest|flight|flights|hotel|hotels|best|time|visit|go|to|in|me|my|a|an|under|day|days|what|when|how|much|is|it|there|please|leo|can|you|weather|pack|packing|do|see|eat|things|thing|currency|money|language|safe|safest|country|countries|night|nights|people|person|honeymoon|family|week|weeks|month|months|plan|holiday|holidays|vacation|luxury|budget|cold|hot|warm|rain|food|foods|show|shows|watch|festival|events|need|visa|fly|direct|long|cost|price|ticket|tickets|good|great|nice|place|places|top|must|famous|popular|local|special|about|here|today|tomorrow|sea|beach|mountains|city|culture|nature|now|next|this|that|cheaper|more|less|make|want|like|love|also|some|any|all|tell|give|find|book|guide|sightseeing|sights|attractions|weekend|getaway|tour|stay|room|rooms|deal|deals|idea|ideas|suggest|surprise|random|anywhere|again|same|other)$/;
   function cityFrom(text) {
-    var t = text.toLowerCase().replace(/[?!.,]/g, " ");
-    var m = t.match(/(?:to|in|visit|visiting|for|about|at)\s+([a-zà-ÿ .'-]{2,30})$/) || t.match(/(?:to|in|visit|visiting|for|about|at)\s+([a-zà-ÿ'-]+(?:\s[a-zà-ÿ'-]+)?)/);
-    var cand = [];
-    if (m) { var w = m[1].trim().split(/\s+/); cand.push(w.slice(0, 3).join(" "), w.slice(0, 2).join(" "), w[0]); }
-    t.split(/\s+/).forEach(function (w, i, arr) { if (w.length > 2) cand.push(arr.slice(i, i + 2).join(" "), w); });
-    var stop = /^(the|and|for|from|with|trip|trips|cheap|cheapest|flight|flights|hotel|hotels|best|time|visit|go|to|in|me|my|a|an|under|day|days|what|when|how|much|is|it|there|please|leo|can|you|weather|pack|packing)$/;
-    for (var i = 0; i < cand.length; i++) { var c = cand[i]; if (!c || stop.test(c)) continue; var a = M.find(c); if (a) return a; }
+    var t = " " + text.toLowerCase().replace(/[?!.,()]/g, " ").replace(/\s+/g, " ").trim() + " ";
+    var F = window.LeoFacts, cand = [], m, re = /(?:to|in|visit|visiting|for|about|at|of|explore|around)\s+([a-zà-ÿ'-]+(?:\s[a-zà-ÿ'-]+){0,2})/g;
+    // the place usually comes after the last "to / in": "things to do in Paris" → Paris
+    var hits = []; while ((m = re.exec(t))) { hits.push(m[1]); re.lastIndex = m.index + 1; }
+    hits.reverse().forEach(function (h) { var w = h.trim().split(/\s+/); cand.push(w.slice(0, 3).join(" "), w.slice(0, 2).join(" "), w[0]); });
+    // country and nickname names: UK, USA, Kerala, Bali…
+    if (F) { var al = null; Object.keys(F.ALIAS).forEach(function (k) { var i = t.lastIndexOf(" " + k + " "); if (i >= 0 && (!al || i > al.i || (i === al.i && k.length > al.k.length))) al = { k: k, i: i }; }); if (al) cand.unshift(al.k); }
+    t.trim().split(/\s+/).forEach(function (w, i, arr) { if (w.length > 2) cand.push(arr.slice(i, i + 2).join(" "), w); });
+    for (var i = 0; i < cand.length; i++) {
+      var c = cand[i]; if (!c) continue;
+      if (F && F.ALIAS[c]) return M.airport(F.ALIAS[c]);
+      if (c.length < 3 || STOP.test(c) || STOP.test(c.split(" ")[0])) continue;
+      var a = M.find(c); if (a) return a;
+    }
     // typo-proof: "londn", "dubay", "bangkock"
     var best = null;
-    t.split(/\s+/).forEach(function (w) {
-      if (w.length < 4 || stop.test(w)) return;
+    t.trim().split(/\s+/).forEach(function (w) {
+      if (w.length < 4 || STOP.test(w)) return;
       M.AIRPORTS.forEach(function (ap) { var n = ap.city.toLowerCase(); if (Math.abs(n.length - w.length) > 2) return; var d = lev(w, n); if (d <= (n.length > 6 ? 2 : 1) && (!best || d < best.d)) best = { a: ap, d: d }; });
     });
     return best ? best.a : null;
@@ -554,50 +576,183 @@
   // ---------- full trip plans ----------
   var lastPlan = null;
   function travellers(t) {
-    var n = t.match(/(?:for|x|with)\s*(\d{1,2})\s*(?:people|persons|adults|of us|pax|friends|travellers|travelers)?\b/) || t.match(/(\d{1,2})\s*(?:people|persons|adults|pax|friends|travellers|travelers)/);
+    var n = t.match(/(?:for|x|with)\s*(\d{1,2})\b(?!\s*(?:days?|nights?|weeks?|hours?|stars?|★|d\b|n\b|k\b|,\d|\d))/) || t.match(/(\d{1,2})\s*(?:people|persons|adults|pax|friends|travellers|travelers|of us)\b/);
     if (n) return Math.min(12, Math.max(1, +n[1]));
-    if (/couple|two of us|honeymoon|wife|husband|partner|girlfriend|boyfriend/.test(t)) return 2;
+    if (/couple|two of us|honeymoon|wife|husband|partner|girlfriend|boyfriend|anniversary/.test(t)) return 2;
     if (/family/.test(t)) return 4;
     return 0;
   }
-  function styleOf(t) { return /luxury|5 ?star|lavish|premium|fancy/.test(t) ? 5 : /budget|cheap|backpack|hostel|low cost|cheaper/.test(t) ? 2 : /4 ?star|nice|comfort/.test(t) ? 4 : /3 ?star|mid/.test(t) ? 3 : 0; }
+  function styleOf(t) { return /luxury|5 ?star|lavish|premium|fancy/.test(t) ? 5 : /budget|backpack|hostel|low cost|cheaper|cheap (trip|hotel|stay)/.test(t) ? 2 : /4 ?star|comfort/.test(t) ? 4 : /3 ?star|mid.?range/.test(t) ? 3 : /honeymoon|anniversary/.test(t) ? 5 : 0; }
   function daysOf(t) { var nd = t.match(/(\d{1,2})\s*(?:days?|d\b)/), nn = t.match(/(\d{1,2})\s*nights?/), w = t.match(/(\d)\s*weeks?|a week|one week/); return nd ? +nd[1] : nn ? +nn[1] + 1 : w ? (+w[1] || 1) * 7 : /weekend/.test(t) ? 3 : 0; }
-  function buildPlan(city, o) {
-    var home = o.home || window.DD.home(), homeA = M.airport(home), month = o.month || window.DD.month();
-    var days = Math.min(14, Math.max(2, o.days || 5)), nights = days - 1, ppl = o.ppl || 1, stars = o.stars || 3, rooms = Math.ceil(ppl / 2);
-    var rt = cheapestRound(home, city.code, month, nights), night = hotelNight(city.code, stars, month);
-    if (!rt || !night) return null;
-    var hs = (window.DDHotels ? window.DDHotels.byCity(city.code) : []) || [];
-    var hotel = hs.filter(function (h) { return h[1] === stars; })[0] || hs.slice().sort(function (a, b) { return Math.abs(a[1] - stars) - Math.abs(b[1] - stars); })[0];
-    var sg = (window.DDSights && window.DDSights.byCity(city.code)) || null, theme = themesOf(city.code)[0] || "city";
-    var G = sg || (window.DDSights ? window.DDSights.byTheme(theme) : [["Explore the old town"], ["Local market"], ["Sunset viewpoint"]]);
-    var food = sg ? sg[3] : "the local speciality";
-    var fl = rt.total * ppl, ho = night * nights * rooms, daily = Math.round(night * 0.45) * ppl * days, tot = fl + ho + daily;
-    lastPlan = { city: city, days: days, ppl: ppl, stars: stars, month: month, home: home }; lastCity = city;
-    function day(n) { var d = new Date(rt.out.date + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return nice(d.toISOString().slice(0, 10)); }
-    var rows = [];
-    rows.push(["Arrive", "✈ Fly " + esc(homeA.city) + " → " + esc(city.city) + " with " + esc(rt.out.airline) + (rt.out.stops ? " (1 stop)" : " (direct)") + ", check in" + (hotel ? " at <b>" + esc(hotel[0]) + "</b> (" + esc(hotel[2]) + ")" : "") + ".", "🌙 " + esc(G[2][0])]);
-    for (var i = 1; i < days - 1; i++) {
-      var k = i - 1, cyc = Math.floor(k / 3);
-      if (cyc >= 1 && k % 3 === 0) rows.push(["Free day", "🧭 Your choice: sleep in, shop, or take a day trip. Ask me for ideas!", "🍽 Try " + esc(food)]);
-      else rows.push(["Explore", "☀️ " + esc(G[0][k % 3]) + "<br>🌤 " + esc(G[1][k % 3]), "🌙 " + esc(G[2][(k + 1) % 3]) + (k === 0 ? " · 🍽 try " + esc(food) : "")]);
-    }
-    rows.push(["Fly home", "🛍 Last breakfast and souvenirs, then check out.", "✈ " + esc(rt.back.airline) + " back to " + esc(homeA.city) + (rt.back.stops ? " (1 stop)" : " (direct)")]);
-    var html = '<div class="lp-plan"><div class="lp-plan-h">📋 <b>Your ' + days + "-day " + esc(city.city) + " plan</b><span>" + ppl + (ppl > 1 ? " travellers" : " traveller") + " · " + stars + "★ hotel · " + monthName(month) + "</span></div>" +
-      rows.map(function (r, i) { return '<div class="lp-day"><div class="lp-dn"><b>Day ' + (i + 1) + "</b><small>" + day(i) + "</small><i>" + r[0] + '</i></div><div class="lp-dd">' + r[1] + "<br>" + r[2] + "</div></div>"; }).join("") +
-      '<table class="lp-cost"><tr><td>✈ Flights (return × ' + ppl + ")</td><td>" + window.DD.money(fl) + "</td></tr>" +
-      "<tr><td>🏨 " + (hotel ? esc(hotel[0]) : stars + "★ hotel") + ", " + nights + " night" + (nights > 1 ? "s" : "") + (rooms > 1 ? " × " + rooms + " rooms" : "") + "</td><td>" + window.DD.money(ho) + "</td></tr>" +
-      "<tr><td>🍜 Food, transport &amp; tickets</td><td>" + window.DD.money(daily) + "</td></tr>" +
-      '<tr class="tot"><td>Total</td><td>' + window.DD.money(tot) + "</td></tr>" + (ppl > 1 ? '<tr class="pp"><td>Per person</td><td>' + window.DD.money(Math.round(tot / ppl)) + "</td></tr>" : "") + "</table>" +
-      '<div class="lp-note">Estimated prices. Check opening times before you go. The buttons open live prices.</div></div>' +
-      btns([["✈ Book flights", 'data-fly="' + city.code + "|" + rt.out.date + '"'], ["🏨 Book hotel", 'data-hotels="' + city.code + '"'], ["📋 Copy plan", 'data-copy="1"']]) +
-      btns([["⭐ Luxury", 'data-ask="Make it luxury"'], ["💸 Cheaper", 'data-ask="Make it cheaper"'], ["➕ 2 more days", 'data-ask="Make it ' + (days + 2) + ' days"'], ["👥 For 2", 'data-ask="For 2 people"']]);
-    return { html: html, mood: tot / ppl < 600 ? "surprised" : "cool", intent: "Trip plan" };
+  function addDays(date, n) { var d = new Date(date + "T00:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+  function bestOffer(from, to, date) {
+    var r = M.searchFlights({ from: from, to: to, date: date, adults: 1 }), o = (r.offers || []).slice().sort(function (a, b) { return a.price - b.price; });
+    return o[0] ? { date: date, price: o[0].price, airline: o[0].airline, stops: o[0].stops } : null;
   }
+  function guideOf(code) {
+    var sg = window.DDSights && window.DDSights.byCity(code), theme = themesOf(code)[0] || "city";
+    return { G: sg || (window.DDSights ? window.DDSights.byTheme(theme) : [["Explore the old town"], ["Local market"], ["Sunset viewpoint"]]), food: sg ? sg[3] : "", real: !!sg, watch: (window.DDSights && window.DDSights.watch && window.DDSights.watch(code)) || [] };
+  }
+  // Builds a day-by-day plan for one city, or a multi-city route (e.g. Paris → Rome → Barcelona).
+  function buildPlan(cities, o) {
+    if (!cities.length) return null;
+    var home = o.home || window.DD.home(), homeA = M.airport(home), month = o.month || window.DD.month();
+    var days = Math.min(21, Math.max(2, o.days || (cities.length > 1 ? 9 : 5))), ppl = o.ppl || 1, stars = o.stars || 3, rooms = Math.ceil(ppl / 2);
+    cities = cities.filter(function (c) { return c.code !== home; }).slice(0, Math.max(1, Math.floor(days / 3)));
+    if (!cities.length) return null;
+    var n = cities.length, per = cities.map(function (_, i) { return Math.floor(days / n) + (i < days % n ? 1 : 0); });
+    // flights: one city uses the cheapest out/back pair; a route uses the cheapest day to start, then fixed dates
+    var legs = [], start;
+    if (n === 1) {
+      var rt = cheapestRound(home, cities[0].code, month, days - 1); if (!rt) return null;
+      legs = [rt.out, rt.back]; start = rt.out.date;
+    } else {
+      var first = cheapestMonthDays(home, cities[0].code, month)[0]; if (!first) return null;
+      start = first.date; legs.push(first);
+      var off = 0;
+      for (var i = 1; i < n; i++) { off += per[i - 1]; var lg = bestOffer(cities[i - 1].code, cities[i].code, addDays(start, off)); if (!lg) return null; legs.push(lg); }
+      var back = bestOffer(cities[n - 1].code, home, addDays(start, days - 1)); if (!back) return null; legs.push(back);
+    }
+    var rows = [], hotels = [], hotelCost = 0, dayIdx = 0;
+    cities.forEach(function (city, ci) {
+      var g = guideOf(city.code), nights = per[ci] - (ci === n - 1 ? 1 : 0);
+      var hs = (window.DDHotels ? window.DDHotels.byCity(city.code) : []) || [];
+      var hotel = hs.filter(function (h) { return h[1] === stars; })[0] || hs.slice().sort(function (a, b) { return Math.abs(a[1] - stars) - Math.abs(b[1] - stars); })[0];
+      var night = hotelNight(city.code, stars, month) || 0;
+      hotelCost += night * Math.max(0, nights) * rooms; hotels.push({ city: city, hotel: hotel, nights: nights, night: night });
+      var lg = legs[ci], fromName = ci ? cities[ci - 1].city : homeA.city;
+      for (var d = 0; d < per[ci]; d++, dayIdx++) {
+        var isLast = dayIdx === days - 1, k = d - 1;
+        if (d === 0) rows.push([ci ? "Travel" : "Arrive", city.city, "✈ " + esc(fromName) + " → " + esc(city.city) + " with " + esc(lg.airline) + (lg.stops ? " (1 stop)" : " (direct)") + ", check in" + (hotel ? " at <b>" + esc(hotel[0]) + "</b> (" + esc(hotel[2]) + ")" : "") + ".", "🌙 " + esc(g.G[2][0])]);
+        else if (isLast) rows.push(["Fly home", city.city, "☀️ " + esc(g.G[0][k % 3]) + " if time allows, then souvenirs and check out.", "✈ " + esc(legs[legs.length - 1].airline) + " back to " + esc(homeA.city) + (legs[legs.length - 1].stops ? " (1 stop)" : " (direct)")]);
+        else if (k >= 3 && k % 3 === 0) rows.push(["Free day", city.city, "🧭 Your choice: sleep in, shop, or a day trip" + (g.watch.length ? ". Special: " + esc(g.watch[0]) : "") + ".", "🍽 " + (g.food ? "Try " + esc(g.food) : "Dinner at a local favourite")]);
+        else rows.push(["Explore", city.city, "☀️ " + esc(g.G[0][k % 3]) + "<br>🌤 " + esc(g.G[1][k % 3]), "🌙 " + esc(g.G[2][(k + 1) % 3]) + (k === 0 && g.food ? " · 🍽 try " + esc(g.food) : "")]);
+      }
+    });
+    var fl = legs.reduce(function (s, l) { return s + l.price; }, 0) * ppl, nightAvg = hotels.reduce(function (s, h) { return s + h.night; }, 0) / n;
+    var daily = Math.round(nightAvg * 0.45) * ppl * days, tot = fl + hotelCost + daily;
+    lastPlan = { cities: cities, city: cities[0], days: days, ppl: ppl, stars: stars, month: month, home: home, budget: o.budget || 0 }; lastCity = cities[n - 1];
+    var title = n > 1 ? cities.map(function (c) { return esc(c.city); }).join(" → ") : esc(cities[0].city);
+    var html = '<div class="lp-plan"><div class="lp-plan-h">📋 <b>Your ' + days + "-day " + title + " plan</b><span>" + ppl + (ppl > 1 ? " travellers" : " traveller") + " · " + stars + "★ hotels · " + monthName(month) + " · from " + esc(homeA.city) + "</span></div>" +
+      rows.map(function (r, i) { return '<div class="lp-day"><div class="lp-dn"><b>Day ' + (i + 1) + "</b><small>" + nice(addDays(start, i)) + "</small><i>" + r[0] + "</i>" + (n > 1 ? "<em>" + esc(r[1]) + "</em>" : "") + '</div><div class="lp-dd">' + r[2] + "<br>" + r[3] + "</div></div>"; }).join("");
+    // Don't miss: special things to watch and food for each city
+    var dm = cities.map(function (c) { var g = guideOf(c.code); return (g.watch.length || g.food) ? "<li><b>" + esc(c.city) + ":</b> " + (g.watch.length ? "🎭 " + g.watch.slice(0, 2).map(esc).join("; ") : "") + (g.watch.length && g.food ? " · " : "") + (g.food ? "🍽 " + esc(g.food) : "") + "</li>" : ""; }).join("");
+    if (dm) html += '<div class="lp-miss"><b>✨ Don\'t miss</b><ul class="lp-ul">' + dm + "</ul></div>";
+    html += '<table class="lp-cost"><tr><td>✈ Flights (' + legs.length + " flights × " + ppl + ")</td><td>" + window.DD.money(fl) + "</td></tr>" +
+      hotels.map(function (h) { return "<tr><td>🏨 " + (h.hotel ? esc(h.hotel[0]) : stars + "★ hotel") + (n > 1 ? " (" + esc(h.city.city) + ")" : "") + ", " + h.nights + " night" + (h.nights === 1 ? "" : "s") + (rooms > 1 ? " × " + rooms + " rooms" : "") + "</td><td>" + window.DD.money(h.night * h.nights * rooms) + "</td></tr>"; }).join("") +
+      "<tr><td>🍜 Food, local transport &amp; tickets</td><td>" + window.DD.money(daily) + "</td></tr>" +
+      '<tr class="tot"><td>Total</td><td>' + window.DD.money(tot) + "</td></tr>" + (ppl > 1 ? '<tr class="pp"><td>Per person</td><td>' + window.DD.money(Math.round(tot / ppl)) + "</td></tr>" : "") + "</table>";
+    if (o.budget) {
+      var b = o.budget / (rate() || 1);
+      html += tot <= b ? '<p class="lp-ok">✅ Fits your budget of ' + window.DD.money(b) + " with about " + window.DD.money(b - tot) + " to spare.</p>"
+        : '<p class="lp-warn">⚠️ About ' + window.DD.money(tot - b) + " over your " + window.DD.money(b) + " budget. Try <i>cheaper</i> or fewer days.</p>";
+    }
+    html += '<div class="lp-note">Estimated prices. Check opening times and event dates before you go. The buttons open live prices.</div></div>' +
+      btns([["✈ Book flights", 'data-fly="' + cities[0].code + "|" + start + '"'], ["🏨 Book hotel", 'data-hotels="' + cities[0].code + '"'], ["📋 Copy plan", 'data-copy="1"']]) +
+      btns([["⭐ Luxury", 'data-ask="Make it luxury"'], ["💸 Cheaper", 'data-ask="Make it cheaper"'], ["➕ 2 more days", 'data-ask="Make it ' + (days + 2) + ' days"'], ["👥 For 2", 'data-ask="For 2 people"']]);
+    return { html: html, mood: o.budget && tot > o.budget / (rate() || 1) ? "sad" : tot / ppl < 600 ? "surprised" : "cool", intent: "Trip plan" };
+  }
+
+  // ---------- city guide: sights, food and special things to watch ----------
+  function cityGuide(city, focus) {
+    var g = guideOf(city.code), sights = [], seen = {};
+    [0, 1].forEach(function (k) { g.G[k].forEach(function (x) { if (!seen[x]) { seen[x] = 1; sights.push(x); } }); });
+    var h = "";
+    if (!g.real) h += "<p>I don't have a detailed guide for <b>" + esc(city.city) + "</b> yet, so here are ideas that suit it:</p>";
+    if (focus === "food") h += "<p>🍽 In <b>" + esc(city.city) + "</b>, try " + (g.food ? "<b>" + esc(g.food) + "</b>" : "the local speciality at a busy local place") + ".</p><p>Good food spots: " + g.G[2].map(esc).join(" · ") + "</p>";
+    else if (focus === "watch") h += "<p>🎭 Special things to watch in <b>" + esc(city.city) + "</b>:</p><ul class=\"lp-ul\">" + (g.watch.length ? g.watch : g.G[2]).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>";
+    else {
+      h += '<div class="lp-plan-h">🗺 <b>' + esc(city.city) + " guide</b><span>" + esc(city.country) + "</span></div>";
+      h += '<div class="lp-gd"><b>📸 Top sights</b><ul class="lp-ul">' + sights.slice(0, 6).map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></div>";
+      h += '<div class="lp-gd"><b>🌙 Evenings</b><ul class="lp-ul">' + g.G[2].map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></div>";
+      if (g.watch.length) h += '<div class="lp-gd"><b>🎭 Special to watch</b><ul class="lp-ul">' + g.watch.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></div>";
+      if (g.food) h += '<div class="lp-gd"><b>🍽 Must-eat</b><p>' + esc(g.food) + "</p></div>";
+    }
+    h += '<div class="lp-note">Check opening times and event dates before you go.</div>' + btns([["📋 Plan 4 days here", 'data-ask="Plan 4 days in ' + esc(city.city) + '"'], ["✈ Flights", 'data-fly="' + city.code + "|" + window.DD.month() + '-12"'], ["🏨 Hotels", 'data-hotels="' + city.code + '"']]);
+    return { html: h, mood: "happy", intent: focus === "food" ? "Food to try" : focus === "watch" ? "Special to watch" : "Things to do" };
+  }
+
+  // ---------- live facts: weather and money (real data when online) ----------
+  function getJSON(url, ms) {
+    return new Promise(function (ok, no) {
+      if (location.protocol === "file:" && !/^https:/.test(url)) return no();
+      var done = false, t = setTimeout(function () { done = true; no(new Error("timeout")); }, ms || 6000);
+      fetch(url).then(function (r) { return r.ok ? r.json() : Promise.reject(); }).then(function (j) { if (!done) { clearTimeout(t); ok(j); } }, function (e) { if (!done) { clearTimeout(t); no(e); } });
+    });
+  }
+  function feel(c) { return c >= 35 ? "very hot" : c >= 29 ? "hot" : c >= 23 ? "warm" : c >= 17 ? "mild" : c >= 9 ? "cool" : c >= 2 ? "cold" : "freezing"; }
+  function wear(hi, lo, wet) {
+    var w = hi >= 29 ? "light, breathable clothes, sunglasses and sunscreen" : hi >= 22 ? "t-shirts and a light layer for the evening" : hi >= 15 ? "layers and a light jacket" : hi >= 7 ? "a warm jacket, a sweater and closed shoes" : "a heavy coat, gloves, a hat and warm boots";
+    return w + (wet ? ", plus an umbrella" : "") + (lo <= 0 ? ". Expect frost or snow at night" : "");
+  }
+  function weatherAnswer(city, month, soon) {
+    var a = M.airport(city.code), base = SEASON_CITY[city.code] || SEASON[city.region] || SEASON.europe;
+    var fallback = { intent: "Weather", mood: "curious", html: "<p>I couldn't reach the live weather service right now. Generally, the best time to visit <b>" + esc(city.city) + "</b> is <b>" + base[0] + "</b>: " + base[1] + ".</p>" };
+    if (!a || !window.fetch) return fallback;
+    if (soon) {
+      return getJSON("https://api.open-meteo.com/v1/forecast?latitude=" + a.lat + "&longitude=" + a.lon + "&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=4").then(function (j) {
+        var d = j.daily, rows = d.time.map(function (t, i) { return "<li><b>" + nice(t) + "</b>: " + Math.round(d.temperature_2m_max[i]) + "° / " + Math.round(d.temperature_2m_min[i]) + "°C" + (d.precipitation_probability_max[i] >= 40 ? ", 🌧 " + d.precipitation_probability_max[i] + "% chance of rain" : ", ☀️ mostly dry") + "</li>"; }).join("");
+        return { intent: "Weather forecast", mood: "happy", html: "<p>🌤 Forecast for <b>" + esc(city.city) + "</b> (live):</p><ul class=\"lp-ul\">" + rows + "</ul><p>Pack " + wear(d.temperature_2m_max[0], d.temperature_2m_min[0], d.precipitation_probability_max.some(function (p) { return p >= 50; })) + ".</p>" };
+      }, function () { return fallback; });
+    }
+    var mo = +month.slice(5, 7), now = new Date(), y = now.getUTCFullYear() - (mo >= now.getUTCMonth() + 1 ? 1 : 0);
+    var last = new Date(Date.UTC(y, mo, 0)).getUTCDate(), from = y + "-" + String(mo).padStart(2, "0") + "-01", to = y + "-" + String(mo).padStart(2, "0") + "-" + last;
+    return getJSON("https://archive-api.open-meteo.com/v1/archive?latitude=" + a.lat + "&longitude=" + a.lon + "&start_date=" + from + "&end_date=" + to + "&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto").then(function (j) {
+      var d = j.daily, n = 0, hi = 0, lo = 0, wet = 0, mm = 0;
+      d.time.forEach(function (_, i) { if (d.temperature_2m_max[i] == null) return; n++; hi += d.temperature_2m_max[i]; lo += d.temperature_2m_min[i]; if ((d.precipitation_sum[i] || 0) >= 1) wet++; mm += d.precipitation_sum[i] || 0; });
+      if (!n) return fallback;
+      hi = Math.round(hi / n); lo = Math.round(lo / n);
+      var mName = monthName(month);
+      return { intent: "Weather", mood: hi >= 35 ? "surprised" : lo <= 2 ? "curious" : "happy",
+        html: "<p>🌡 In <b>" + mName + "</b>, <b>" + esc(city.city) + "</b> is <b>" + feel(hi) + "</b>: days around <b>" + hi + "°C</b>, nights around <b>" + lo + "°C</b>, with rain on about <b>" + wet + " day" + (wet === 1 ? "" : "s") + "</b> (" + Math.round(mm) + " mm).</p><p>👕 Pack " + wear(hi, lo, wet >= 6) + ".</p><div class=\"lp-note\">Based on real weather recorded in " + mName + " " + y + " (Open-Meteo). Best season overall: " + base[0] + ".</div>" };
+    }, function () { return fallback; });
+  }
+  function moneyAnswer(city) {
+    var F = window.LeoFacts, c = F && F.COUNTRY[city.country];
+    if (!c) return { intent: "Currency", mood: "curious", html: "<p>I'm not sure about the currency in " + esc(city.country) + ". Please check with your bank before you go.</p>" };
+    var homeC = (window.DD.context().currency || "USD").toUpperCase(), base = "<p>💱 <b>" + esc(city.country) + "</b> uses the <b>" + esc(c[1]) + " (" + c[0] + ")</b>. People speak " + esc(c[2]) + ".</p>";
+    var tips = "<p>Tip: cards work in most cities, but carry some cash for markets and taxis. Withdraw from bank ATMs and pay in the local currency to avoid bad conversion fees.</p>";
+    if (homeC === c[0]) return { intent: "Currency", mood: "happy", html: base + tips };
+    return getJSON("https://open.er-api.com/v6/latest/" + homeC).then(function (j) {
+      var r = j.rates && j.rates[c[0].slice(0, 3)];
+      if (!r) return { intent: "Currency", mood: "happy", html: base + tips };
+      var amt = r >= 100 ? 1 : r >= 1 ? 100 : 1000;
+      return { intent: "Currency", mood: "happy", html: base + "<p>Today <b>" + amt.toLocaleString("en-US") + " " + homeC + " ≈ " + (amt * r).toLocaleString("en-US", { maximumFractionDigits: r >= 10 ? 0 : 2 }) + " " + c[0] + "</b> (live rate).</p>" + tips };
+    }, function () { return { intent: "Currency", mood: "happy", html: base + tips }; });
+  }
+  function regionOf(text) {
+    var F = window.LeoFacts; if (!F) return null;
+    for (var i = 0; i < F.REGIONS.length; i++) if (F.REGIONS[i][0].test(text)) return F.REGIONS[i];
+    return null;
+  }
+  function cheapestMonths(home, code) {
+    var now = new Date(), out = [];
+    for (var i = 1; i <= 12; i++) {
+      var d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + i, 1)), m = d.toISOString().slice(0, 7), best = null;
+      [3, 8, 13, 18, 23, 27].forEach(function (day) { var o = bestOffer(home, code, m + "-" + String(day).padStart(2, "0")); if (o && (!best || o.price < best.price)) best = o; });
+      if (best) out.push({ month: m, price: best.price, date: best.date });
+    }
+    return out;
+  }
+
   var lastCity = null;
   // Leo's own brain: understands the common questions without any outside help.
+  function routeOf(text) {
+    var t = text.toLowerCase().replace(/[?!.,]/g, " ").replace(/\s+/g, " ").trim();
+    var m = t.match(/from\s+(.+?)\s+to\s+(.+?)(?=\s+(?:in|on|for|under|next|this|during|with|around|by)\b|$)/) ||
+      t.match(/^(?:(?:cheap(?:est)?|direct|best)\s+)?(?:flights?|fly|fares?|tickets?)\s+(.+?)\s+to\s+(.+?)(?=\s+(?:in|on|for|under|next|this)\b|$)/);
+    if (!m) return null;
+    var a = cityFrom("in " + m[1]), b = cityFrom("to " + m[2]);
+    return a && b && a.code !== b.code ? { from: a, to: b } : null;
+  }
   function localBrain(text) {
     var t = text.toLowerCase().trim(), name = who(), home = window.DD.home(), homeA = M.airport(home), month = parse(text).month || window.DD.month();
+    var route = routeOf(text); if (route) { home = route.from.code; homeA = route.from; }
+    if (/bruno/.test(t)) {
+      var B = window.Bruno;
+      if (/call|where|come|bring|invite|play|see|show/.test(t) && B) { setTimeout(function () { B.visit(true); }, 500); return { html: "<p>BRUNO! 🐾 *barks loudly* He's coming, he's never far away!</p>", mood: "excited" }; }
+      return { html: "<p>Bruno is my best friend! 🖤 He's a black Indian street dog, an <b>Indie</b>: tall pointy ears, curly tail and the bravest heart on the street. He visits me a lot. Want me to call him?</p>" + btns([["🐕 Call Bruno", 'data-ask="Call Bruno"']]), mood: "love" };
+    }
     var nm = text.match(/(?:my name is|i am|i'm|im|call me)\s+([a-zà-ÿ][a-zà-ÿ'-]{1,18})/i);
     if (nm && !/^(going|looking|from|in|at|flying|travel|so|not|a|the|fine|good|ok|okay|hungry|bored|here)$/i.test(nm[1])) {
       nick = nm[1].charAt(0).toUpperCase() + nm[1].slice(1).toLowerCase(); store("dd-leo-name", nick);
@@ -617,26 +772,53 @@
     // what can you do
     if (/what can you do|help|how (do|does) (this|you) work|commands/.test(t)) return { html: "<p>Lots! Try:</p><ul class=\"lp-ul\"><li><i>Plan 5 days in Bali for 2</i>: a day-by-day plan with flights, hotel and budget</li><li><i>Paris or London?</i>: I compare them</li><li><i>weekend trip under $200</i></li><li><i>direct flights to Doha</i></li><li><i>cheapest day to fly to Goa</i></li><li><i>best time to visit Japan</i>, <i>what to pack</i></li></ul>", mood: "happy" };
     // full plan: "5 days in Bali for 2", "plan a trip to Paris", "itinerary for Tokyo"
-    var cityT = cityFrom(text), dz = daysOf(t), wantsPlan = /plan|itinerary|schedule|day.by.day|organi[sz]e/.test(t);
-    if (!cityT && wantsPlan && lastCity) cityT = lastCity;
-    if (cityT && cityT.code !== home && (dz || wantsPlan)) {
-      var pq = parse(text);
-      var pr = buildPlan(cityT, { days: dz || 5, ppl: travellers(t) || 1, stars: styleOf(t) || 3, month: pq.month || month, home: pq.home });
+    var cityT = route ? route.to : cityFrom(text), dz = daysOf(t), wantsPlan = /plan|itinerary|schedule|day.by.day|organi[sz]e/.test(t), reg = regionOf(t), pq = parse(text);
+    var tripWord = /trip|holiday|vacation|getaway|honeymoon|tour|visit/.test(t);
+    // weather, money, guides and other facts come first: they're about a place, not a trip plan
+    var factCity = cityT || (/\b(there|it|that|same|this place)\b/.test(t) || !/[a-z]{4,}\s+(?:in|to)\s/.test(t) ? lastCity : null);
+    if (factCity && /weather|temperature|how (hot|cold|warm)|is it (hot|cold|warm|rainy|raining|snowing|sunny)|\brain(y|ing)?\b|snow|climate|degrees|forecast/.test(t) && !/best time|when (to|should)/.test(t)) {
+      lastCity = factCity;
+      return weatherAnswer(factCity, pq.month || month, /today|tomorrow|now|this week|forecast|next few days/.test(t));
+    }
+    if (factCity && /currency|money|cash|exchange|rupee|dollar|dirham|\beuros?\b|\bpay\b|atm|card/.test(t) && !/how much|cost|price|budget|cheap/.test(t)) { lastCity = factCity; return moneyAnswer(factCity); }
+    if (factCity && /language|speak|english/.test(t)) {
+      var cf = window.LeoFacts && window.LeoFacts.COUNTRY[factCity.country]; lastCity = factCity;
+      if (cf) return { intent: "Language", mood: "happy", html: "<p>🗣 In <b>" + esc(factCity.country) + "</b> people speak <b>" + esc(cf[2]) + "</b>. A smile and a few local words like hello and thank you go a long way! 🐾</p>" };
+    }
+    if (/safe(st|ty)?\b|dangerous|crime/.test(t)) {
+      var SAFE = (window.LeoFacts && window.LeoFacts.SAFE) || [];
+      return { intent: "Safety", mood: "curious", html: (cityT ? "<p>I can't judge safety for <b>" + esc(cityT.city) + "</b> reliably from here. Please read your government's official travel advice for " + esc(cityT.country) + " before booking.</p>" : "<p>🛡 Countries often ranked among the safest in the Global Peace Index: <b>" + SAFE.join(", ") + "</b>.</p><p>Rankings change every year, so check your government's travel advice too.</p>") + "<p>Wherever you go: keep copies of your passport, use registered taxis or ride apps, and get travel insurance. 🐾</p>" };
+    }
+    if (factCity && /things to (do|see|watch)|what to do|what to see|\bwatch\b|must.?see|sight.?see|sightseeing|attractions?|places to (visit|see|go)|top sights|guide|famous|what.*(special|watch)|shows?\b|festival|events?\b|nightlife|what to eat|food|eat\b|dish|cuisine|must.?try/.test(t) && !wantsPlan && !dz) {
+      lastCity = factCity;
+      return cityGuide(factCity, /eat|food|dish|cuisine|must.?try|restaurant/.test(t) && !/things|see|sight/.test(t) ? "food" : /watch|shows?\b|festival|events?\b|special|nightlife|perform/.test(t) && !/things to do|sight/.test(t) ? "watch" : "all");
+    }
+    if (!cityT && reg && /best time|when (to|should)|season|weather/.test(t)) {
+      var sr = SEASON[reg[2]] || SEASON.europe;
+      return { intent: "Best time to visit", html: "<p>The best time to visit <b>" + reg[1] + "</b> is usually <b>" + sr[0] + "</b>: " + sr[1] + ". It varies a lot by country, so ask me about a city for exact weather.</p>" + btns(reg[3].map(function (c) { var a = M.airport(c); return ["☀️ " + esc(a.city), 'data-ask="Weather in ' + esc(a.city) + " in " + monthName(month) + '"']; })), mood: "happy" };
+    }
+    if (!cityT && wantsPlan && lastCity && !reg) cityT = lastCity;
+    if (!cityT && reg && (dz || wantsPlan || tripWord)) {
+      var rp = buildPlan(reg[3].map(function (c) { return M.airport(c); }), { days: dz || 9, ppl: travellers(t) || 1, stars: styleOf(t) || 3, month: month, home: pq.home || home, budget: pq.budget });
+      if (rp) { rp.html = "<p>" + reg[1] + " is big, so I planned a classic route for you. 🐾</p>" + rp.html; return rp; }
+    }
+    if (cityT && cityT.code !== home && (dz || wantsPlan || (pq.budget && tripWord))) {
+      var pr = buildPlan([cityT], { days: dz || 5, ppl: travellers(t) || 1, stars: styleOf(t) || 3, month: month, home: home, budget: pq.budget });
       if (pr) return pr;
     }
     // follow-ups on the last plan: "make it luxury", "7 days", "for 4 people", "cheaper"
     if (lastPlan && !cityT && !/weekend|cheapest day|which day|suggest|idea/.test(t) && !parse(text).themes.length && !parse(text).budget && (daysOf(t) || travellers(t) || styleOf(t) || /longer|shorter|more days|fewer days|cheaper|upgrade/.test(t))) {
       var lp = lastPlan, nd2 = daysOf(t) || (/longer|more days/.test(t) ? lp.days + 2 : /shorter|fewer days/.test(t) ? lp.days - 2 : lp.days);
       var sty = styleOf(t) || (/upgrade/.test(t) ? Math.min(5, lp.stars + 1) : /cheaper/.test(t) ? Math.max(2, lp.stars - 1) : lp.stars);
-      var pr2 = buildPlan(lp.city, { days: nd2, ppl: travellers(t) || lp.ppl, stars: sty, month: parse(text).month || lp.month, home: lp.home });
-      if (pr2) { pr2.html = "<p>Done! I updated your " + esc(lp.city.city) + " plan. 🐾</p>" + pr2.html; return pr2; }
+      var pr2 = buildPlan(lp.cities || [lp.city], { days: nd2, ppl: travellers(t) || lp.ppl, stars: sty, month: parse(text).month || lp.month, home: lp.home, budget: parse(text).budget || lp.budget });
+      if (pr2) { pr2.html = "<p>Done! I updated your plan: " + [nd2 + " days", (travellers(t) || lp.ppl) + " traveller" + ((travellers(t) || lp.ppl) > 1 ? "s" : ""), sty + "★ hotels"].join(", ") + ". 🐾</p>" + pr2.html; return pr2; }
     }
     // compare two places
     var two = citiesIn(text).filter(function (a) { return a.code !== home; });
     if (two.length >= 2 && /\bor\b|\bvs\b|versus|compare|better|which/.test(t)) {
       var rows = two.slice(0, 3).map(function (a) { var r = cheapestRound(home, a.code, month, 4), hn = hotelNight(a.code, 3, month); return { a: a, fl: r ? r.total : 0, hn: hn, wk: (r ? r.total : 0) + hn * 4, th: themesOf(a.code)[0] }; });
       rows.sort(function (x, y) { return x.wk - y.wk; });
-      return { intent: "Compare places", html: "<p>⚖️ Comparing from " + esc(homeA.city) + " in " + monthName(month) + " (return flight + 4 nights 3★):</p><ul class=\"lp-ul\">" + rows.map(function (r, i) { return "<li>" + (i ? "" : "🏆 ") + "<b>" + esc(r.a.city) + "</b>: about " + window.DD.money(r.wk) + " (flights " + window.DD.money(r.fl) + ", hotel ~" + window.DD.money(r.hn) + "/night)" + (r.th ? ", great for " + r.th : "") + "</li>"; }).join("") + "</ul><p><b>" + esc(rows[0].a.city) + "</b> is the better deal by " + window.DD.money(rows[rows.length - 1].wk - rows[0].wk) + "!</p>" +
+      return { intent: "Compare places", html: "<p>⚖️ Comparing from " + esc(homeA.city) + " in " + monthName(month) + " (per person: return flight + 4 nights in a 3★ hotel):</p><ul class=\"lp-ul\">" + rows.map(function (r, i) { return "<li>" + (i ? "" : "🏆 ") + "<b>" + esc(r.a.city) + "</b>: about " + window.DD.money(r.wk) + " (flights " + window.DD.money(r.fl) + ", hotel ~" + window.DD.money(r.hn) + "/night)" + (r.th ? ", great for " + r.th : "") + "</li>"; }).join("") + "</ul><p><b>" + esc(rows[0].a.city) + "</b> is the better deal by " + window.DD.money(rows[rows.length - 1].wk - rows[0].wk) + "!</p>" +
         btns(rows.slice(0, 2).map(function (r) { return ["✈ " + esc(r.a.city), 'data-fly="' + r.a.code + "|" + month + '-12"']; })), mood: "cool" };
     }
     // weekend getaway
@@ -645,9 +827,10 @@
       var fd = fri.toISOString().slice(0, 10), bud = parse(text).budget ? parse(text).budget / (rate() || 1) : 0;
       var near = M.AIRPORTS.filter(function (a) { var dg = Math.hypot(a.lat - homeA.lat, a.lon - homeA.lon); return a.code !== home && dg < 28 && dg > 3.2; }).map(function (a) {
         var r = M.searchFlights({ from: home, to: a.code, date: fd, adults: 1 }), o = (r.offers || []).sort(function (x, y) { return x.price - y.price; })[0];
-        return o ? { c: { code: a.code, city: a.city, country: a.country, price: o.price, date: fd, stops: o.stops, themes: themesOf(a.code) }, mins: o.durationMin } : null;
+        var fast = (r.offers || []).slice().sort(function (x, y) { return x.durationMin - y.durationMin; })[0];
+        return o ? { c: { code: a.code, city: a.city, country: a.country, price: o.price, date: fd, stops: o.stops, themes: themesOf(a.code) }, mins: fast.durationMin, direct: !fast.stops } : null;
       }).filter(function (x) { return x && x.mins < 330 && (!bud || x.c.price <= bud); }).sort(function (x, y) { return x.c.price - y.c.price; }).slice(0, 3);
-      if (near.length) return { intent: "Weekend trip", html: render({ reply: "Weekend escape! Short flights from " + homeA.city + " leaving Fri " + fd.slice(8) + ":", picks: near.map(function (x) { return { c: x.c, why: Math.floor(x.mins / 60) + "h " + x.mins % 60 + "m flight · " + whyLocal(x.c) }; }) }), mood: "excited" };
+      if (near.length) return { intent: "Weekend trip", html: render({ reply: "Weekend escape! Short flights from " + homeA.city + " leaving " + nice(fd) + ", back Sunday:", picks: near.map(function (x) { return { c: x.c, why: Math.floor(x.mins / 60) + "h " + x.mins % 60 + "m" + (x.direct ? " direct" : "") + " · " + whyLocal(x.c) }; }) }), mood: "excited" };
     }
     // direct flights / flight time
     if (cityT && cityT.code !== home && /direct|non.?stop|how long|flight time|duration|hours/.test(t)) {
@@ -658,7 +841,7 @@
         (dir.length ? "Direct airlines: " + dir.filter(function (o, i, arr) { return arr.findIndex(function (x) { return x.airline === o.airline; }) === i; }).slice(0, 4).map(function (o) { return esc(o.airline) + " from " + window.DD.money(o.price); }).join(", ") + "." : "No direct flights on this route; the best connections go via " + (offs[0] && offs[0].via.length ? offs[0].via.join(", ") : "a hub") + ".") + "</p>" + btns([["✈ See flights", 'data-fly="' + cityT.code + "|" + month + '-12"']]), mood: dir.length ? "cool" : "curious" };
     }
     // visas: honest pointer
-    if (/visa|passport|entry/.test(t)) return { intent: "Visa", html: "<p>Visa rules depend on your passport" + (cityT ? " and " + esc(cityT.country) + "'s current policy" : "") + ". Please check the official government or embassy website before booking. I'd hate for you to get stuck at the gate! 🛂🐾</p>", mood: "curious" };
+    if (/visa|passport|entry/.test(t)) return { intent: "Visa", html: "<p>🛂 Whether you need a visa for <b>" + (cityT ? (/^United|Netherlands|Philippines|Maldives|Seychelles|Bahamas/.test(cityT.country) ? "the " : "") + esc(cityT.country) : "your destination") + "</b> depends on your passport" + (cityT ? " and the current entry rules" : "") + ". Please check the official government or embassy website before booking. I'd hate for you to get stuck at the gate! 🐾</p>", mood: "curious" };
     var city = cityFrom(text);
     if (!city && /\b(there|it|that|same|this)\b/.test(t) && lastCity) city = lastCity;   // follow-ups remember the last place
     if (city) lastCity = city;
@@ -669,6 +852,10 @@
     if (/pack|bring|carry/.test(t)) {
       var th = (city ? themesOf(city.code)[0] : parse(text).themes[0]) || "city";
       return { intent: "Packing list", html: "<p>For " + (city ? "<b>" + esc(city.city) + "</b>" : "that trip") + " I'd pack " + PACK[th] + ". And a treat for me, obviously. 🦴</p>", mood: "happy" };
+    }
+    if (city && city.code !== home && /cheap(est)? month|which month|best month|month.*cheap/.test(t)) {
+      var ms = cheapestMonths(home, city.code).sort(function (a, b) { return a.price - b.price; });
+      if (ms.length) return { intent: "Cheapest month", mood: "excited", html: "<p>📆 Checking the next 12 months from " + esc(homeA.city) + " to <b>" + esc(city.city) + "</b>:</p><ul class=\"lp-ul\">" + ms.slice(0, 3).map(function (m, i) { return "<li>" + (i ? "" : "🏆 ") + "<b>" + monthName(m.month) + "</b> from about " + window.DD.money(m.price) + " (" + nice(m.date) + ")</li>"; }).join("") + "</ul><p>Priciest: " + monthName(ms[ms.length - 1].month) + " at about " + window.DD.money(ms[ms.length - 1].price) + ". These are estimates.</p>" + btns([["✈ Search " + monthName(ms[0].month), 'data-fly="' + city.code + "|" + ms[0].date + '"']]) };
     }
     if (city && city.code !== home && /cheap(est)? (day|date|time)|when.*cheap|which day|best day/.test(t)) {
       var days = cheapestMonthDays(home, city.code, month), d = days[0], w = days[days.length - 1];
@@ -684,6 +871,11 @@
       var offers = (r.offers || []).slice().sort(function (a, b) { return a.price - b.price; }), direct = offers.filter(function (o) { return !o.stops; })[0];
       if (offers.length) return { intent: "Flight prices", html: "<p>From " + esc(homeA.city) + " to <b>" + esc(city.city) + "</b> in " + monthName(month) + ", fares start around <b>" + window.DD.money(offers[0].price) + "</b> with " + esc(offers[0].airline) + (offers[0].stops ? " (1 stop)" : " (direct)") + "." + (direct && direct !== offers[0] ? " Cheapest direct: " + esc(direct.airline) + " at " + window.DD.money(direct.price) + "." : "") + " These are estimates, so tap below for every option.</p>" + btns([["✈ See all flights", 'data-fly="' + city.code + "|" + date + '"'], ["📅 Cheapest day", 'data-ask="Cheapest day to fly to ' + esc(city.city) + '"'], ["🏨 Hotels", 'data-hotels="' + city.code + '"']]), mood: "excited" };
     }
+    if (route && route.to.code !== home) {
+      var rdate = month + "-12", rr = M.searchFlights({ from: home, to: route.to.code, date: rdate, adults: 1 }), ro = (rr.offers || []).slice().sort(function (a, b) { return a.price - b.price; }), rd = ro.filter(function (o) { return !o.stops; })[0];
+      lastCity = route.to;
+      if (ro.length) return { intent: "Flight prices", mood: "excited", html: "<p>From <b>" + esc(homeA.city) + "</b> to <b>" + esc(route.to.city) + "</b> in " + monthName(month) + ", fares start around <b>" + window.DD.money(ro[0].price) + "</b> with " + esc(ro[0].airline) + (ro[0].stops ? " (1 stop)" : " (direct)") + "." + (rd && rd !== ro[0] ? " Cheapest direct: " + esc(rd.airline) + " at " + window.DD.money(rd.price) + "." : "") + " These are estimates, so tap below for every option.</p>" + btns([["✈ See all flights", 'data-fly="' + route.to.code + "|" + rdate + '"'], ["📅 Cheapest day", 'data-ask="Cheapest day from ' + esc(homeA.city) + " to " + esc(route.to.city) + '"']]) };
+    }
     var pq2 = parse(text);
     if (!pq2.themes.length && !pq2.budget && !pq2.month && !pq2.surprise && !city && !/suggest|idea|trip|travel|where|holiday|vacation|deal|cheap|visit|escape|recommend|go\b|fly|flight|tour|getaway|best value/.test(t))
       return { html: "<p>Hmm, I'm not sure I understood <i>“" + esc(text.slice(0, 80)) + "”</i>. 🐾 I'm best at trips! Try one of these:</p>" + quickMenu() + btns([["📋 Plan 5 days in Bali", 'data-ask="Plan 5 days in Bali for 2"'], ["⚖️ Paris or London?", 'data-ask="Paris or London?"']]), mood: "curious" };
@@ -694,7 +886,7 @@
     return { html: render(res), mood: res.mood, picks: res.picks.length, intent: res.intent };
   }
   function quickMenu() {
-    return btns([["✈ Best deals for me", 'data-ask="Suggest 3 great value trips for me"'], ["🏖 Beach under $300", 'data-ask="A beach trip under $300"'], ["🏔 Mountains", 'data-ask="Mountains and snow"'], ["🕌 Culture", 'data-ask="History and culture"'], ["🎲 Surprise me", 'data-ask="Surprise me"'], ["😂 Tell a joke", 'data-ask="Tell me a joke"']]);
+    return btns([["✈ Best deals for me", 'data-ask="Suggest 3 great value trips for me"'], ["🏖 Beach under $300", 'data-ask="A beach trip under $300"'], ["🏔 Mountains", 'data-ask="Mountains and snow"'], ["🕌 Culture", 'data-ask="History and culture"'], ["🎲 Surprise me", 'data-ask="Surprise me"'], ["😂 Tell a joke", 'data-ask="Tell me a joke"'], ["🐕 Call Bruno", 'data-ask="Call Bruno"']]);
   }
 
   function log(html, who) {
@@ -717,20 +909,23 @@
   function gotIt(text, res) {
     if (!res.intent) return "";
     var t = text.toLowerCase(), q = parse(text), chips = [res.intent];
-    var home = q.home || (lastPlan && res.intent === "Trip plan" ? lastPlan.home : null) || window.DD.home(), hA = M.airport(home);
-    var cs = citiesIn(text).filter(function (a) { return a.code !== home; });
-    if (!cs.length && res.intent === "Trip plan" && lastPlan) cs = [lastPlan.city];
-    if (!cs.length && lastCity && !/Trip ideas|Surprise|Weekend/.test(res.intent)) cs = [lastCity];
+    var rt = routeOf(text), home = (rt && rt.from.code) || q.home || (lastPlan && res.intent === "Trip plan" ? lastPlan.home : null) || window.DD.home(), hA = M.airport(home);
+    var cs = rt ? [rt.to] : citiesIn(text).filter(function (a) { return a.code !== home; });
+    if (res.intent === "Trip plan" && lastPlan) cs = lastPlan.cities || [lastPlan.city];
+    if (/Weather|Currency|Language|Things to do|Food|Special|Safety/.test(res.intent) && cs.length > 1) cs = cs.slice(-1);
+    if (!cs.length && lastCity && /\b(there|it|that|same|this place)\b/.test(t) && !/Trip ideas|Surprise|Weekend|Safety/.test(res.intent)) cs = [lastCity];
     var full = /Trip plan|Hotels/.test(res.intent);
     if (hA) chips.push("from " + hA.city);
-    if (cs.length) chips.push("to " + cs.slice(0, 3).map(function (a) { return a.city; }).join(" / "));
+    var factual = /Weather|Currency|Language|Things to do|Food|Special|Safety|Best time/.test(res.intent);
+    if (cs.length) chips.push((factual ? "" : "to ") + cs.slice(0, 3).map(function (a) { return a.city; }).join(res.intent === "Trip plan" ? " → " : " / "));
+    if (factual) chips = chips.filter(function (c) { return c.indexOf("from ") !== 0; });
     var p = res.intent === "Trip plan" && lastPlan ? lastPlan : null;
     var dz = p ? p.days : daysOf(t); if (dz && full) chips.push(dz + " days");
     var pp = p ? p.ppl : travellers(t); if (pp && (full || /Compare/.test(res.intent))) chips.push(pp + (pp > 1 ? " people" : " person"));
     var sy = p ? p.stars : styleOf(t); if (sy && full) chips.push(sy + "★ stay");
     if (q.budget) chips.push("under " + q.budget.toLocaleString("en-US"));
     q.themes.forEach(function (x) { chips.push(x); });
-    chips.push(monthName((p && p.month) || q.month || window.DD.month()));
+    if (!/Weekend|Currency|Language|Safety|Things to do|Food|Special|Visa|forecast/.test(res.intent)) chips.push(monthName((p && p.month) || q.month || window.DD.month()));
     return '<div class="lp-got"><span>🐾 You asked:</span>' + chips.map(function (c, i) { return "<em" + (i ? "" : ' class="k"') + ">" + esc(c) + "</em>"; }).join("") + "</div>";
   }
   var asking = false, chatLog = [];
@@ -742,8 +937,9 @@
     var wait = log('<span class="dots"><i></i><i></i><i></i></span> <span class="wt">Leo is thinking…</span>', "leo thinking");
     setMood("curious");
     var started = Date.now();
-    Promise.resolve(null).then(function () {
-      var res = localBrain(text);
+    Promise.resolve(null).then(function () { return localBrain(text); }).catch(function () {
+      return { html: "<p>Oops, my nose got confused by that one. 🐾 Could you ask it another way?</p>" + quickMenu(), mood: "dizzy" };
+    }).then(function (res) {
       setTimeout(function () {
         wait.className = "lp-msg leo"; wait.innerHTML = gotIt(text, res) + res.html;
         talk(null, { mood: res.mood || "happy" });
@@ -950,6 +1146,13 @@
     clearTimeout(huntT); huntT = setTimeout(hunt, 700);
   }).observe(resultsEl, { childList: true });
   setTimeout(function () { if (!huntKey) hunt(); }, 6500);
+  // Hooks for Bruno, Leo's best friend (bruno.js).
+  window.Leo = {
+    rect: function () { return btn.getBoundingClientRect(); }, setMood: setMood, say: say, woof: woof, fx: fx, wave: wave, poke: poke,
+    free: function () { return !busy && !playing && !asking; }, open: function () { return !panel.hidden; },
+    hop: function () { dock.classList.remove("hop"); void dock.offsetWidth; dock.classList.add("hop"); },
+    mood: function () { return mood; }
+  };
   // He notices when you start a search.
   document.addEventListener("submit", function (e) { if (e.target && e.target.id !== "leo-form") { poke(); setMood("excited", 1600); say(["Ooh, where to? ✈", "I'll guard the luggage! 🧳", "Sniffing out cheap fares… 🐾"][Math.floor(Math.random() * 3)], 2200); } }, true);
 })();
