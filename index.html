@@ -674,6 +674,29 @@ header.top.scrolled { background: var(--glass-hi); box-shadow: 0 12px 30px -18px
 .leo-dock.talking .l-head { animation: l-nod .5s ease-in-out infinite alternate; }
 @keyframes l-talk { from { transform: scaleY(.35); } to { transform: scaleY(1.1); } }
 @keyframes l-nod { from { rotate: -3deg; } to { rotate: 3deg; } }
+
+/* Leo: what you asked, and full trip plans */
+.lp-got { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: -2px 0 8px; font-size: 11.5px; }
+.lp-got span { color: var(--mute); font-weight: 700; margin-right: 2px; }
+.lp-got em { font-style: normal; border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; color: var(--ink); background: var(--glass, transparent); }
+.lp-got em.k { background: linear-gradient(180deg, #f2dca6, #d9b46a); color: #20180a; border-color: transparent; font-weight: 700; }
+.lp-pb { display: grid; gap: 5px; }
+.lp-pick .lp-pb button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.lp-plan { display: grid; gap: 8px; margin: 4px 0; }
+.lp-plan-h { display: grid; gap: 2px; font-size: 15px; }
+.lp-plan-h b { font-family: var(--f-display); font-size: 18px; }
+.lp-plan-h span { font-size: 12px; color: var(--gold-hi); font-weight: 700; }
+.lp-day { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 10px; padding: 8px 0; border-top: 1px dashed var(--line); animation: lp-msg .45s cubic-bezier(.2,.8,.2,1) both; }
+.lp-dn { display: grid; align-content: start; gap: 1px; }
+.lp-dn b { font-size: 13px; }
+.lp-dn small { font-size: 11px; color: var(--mute); }
+.lp-dn i { font-style: normal; font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--gold-hi); font-weight: 700; }
+.lp-dd { font-size: 13px; line-height: 1.5; }
+.lp-cost { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 2px; }
+.lp-cost td { padding: 5px 0; border-top: 1px solid var(--line); }
+.lp-cost td:last-child { text-align: right; font-weight: 700; white-space: nowrap; padding-left: 10px; }
+.lp-cost tr.tot td { font-size: 15px; color: var(--gold-hi); border-top: 2px solid var(--gold); }
+.lp-cost tr.pp td { font-size: 12px; color: var(--mute); border-top: 0; padding-top: 0; }
 </style>
 </head>
 <body>
@@ -770,13 +793,14 @@ header.top.scrolled { background: var(--glass-hi); box-shadow: 0 12px 30px -18px
 <datalist id="airports"></datalist>
 <datalist id="cities"></datalist>
 
-<script src="mock.js?v=mvz4ahc2"></script>
-<script src="hotels.js?v=mvz4ahc2"></script>
-<script src="art.js?v=mvz4ahc2"></script>
-<script src="app.js?v=mvz4ahc2"></script>
-<script src="fx.js?v=mvz4ahc2"></script>
-<script src="anim.js?v=mvz4ahc2"></script>
-<script src="buddy.js?v=mvz4ahc2"></script>
+<script src="mock.js?v=mvz5txbu"></script>
+<script src="hotels.js?v=mvz5txbu"></script>
+<script src="art.js?v=mvz5txbu"></script>
+<script src="app.js?v=mvz5txbu"></script>
+<script src="fx.js?v=mvz5txbu"></script>
+<script src="anim.js?v=mvz5txbu"></script>
+<script src="sights.js?v=mvz5txbu"></script>
+<script src="buddy.js?v=mvz5txbu"></script>
 
 </body>
 </html>
