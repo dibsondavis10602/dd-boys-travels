@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Get Leo</title>
+<meta name="description" content="Leo is a small white Pomeranian who lives on your PC screen and helps you out: reminders, to-dos, notes, maths, weather and more. Free for Windows.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>">
+<style>
+:root { --paper:#fbf6ec; --paper-2:#f3ead9; --ink:#2a211b; --mute:#7a6a58; --line:rgba(120,90,50,.22); --gold:#c9973f; --gold-hi:#a8741f; --accent:#d8344c; --me:#2f6f73; --sky1:#f6e3c4; --sky2:#e9b98a;
+  --f-display: Georgia, "Iowan Old Style", "Palatino Linotype", serif; --f-ui: "Segoe UI Variable","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper:#1f1b17; --paper-2:#2a241e; --ink:#f3ead9; --mute:#b3a48e; --line:rgba(240,210,160,.16); --gold:#e0b45e; --gold-hi:#f0c977; --sky1:#2b2420; --sky2:#3d2c22; } }
+:root[data-theme="dark"] { --paper:#1f1b17; --paper-2:#2a241e; --ink:#f3ead9; --mute:#b3a48e; --line:rgba(240,210,160,.16); --gold:#e0b45e; --gold-hi:#f0c977; --sky1:#2b2420; --sky2:#3d2c22; }
+* { box-sizing: border-box; }
+body { margin:0; background: radial-gradient(1200px 600px at 50% -10%, var(--sky2), transparent 70%), linear-gradient(180deg, var(--sky1), var(--paper) 60%); background-color: var(--paper); color: var(--ink); font-family: var(--f-ui); line-height:1.55; min-height:100vh; }
+main { max-width: 860px; margin: 0 auto; padding: 32px 16px 56px; }
+.hero { display:grid; grid-template-columns: minmax(0,1fr) 260px; gap: 28px; align-items:center; }
+h1 { font-family: var(--f-display); font-size: clamp(36px, 7vw, 60px); line-height:1.02; margin: 0 0 12px; letter-spacing:-.5px; }
+h1 em { font-style: normal; color: var(--accent); }
+.lead { font-size: 18px; color: var(--mute); margin: 0 0 22px; max-width: 34em; }
+.stage { position: relative; height: 270px; }
+.stage .leo-dock { position:absolute; right: 30px; bottom: 0; width: 170px; }
+.stage .g { position:absolute; left: 0; bottom: 0; width: 120px; }
+.stage .leo, .stage .bruno { display:block; width:100%; height:auto; overflow:visible; filter: drop-shadow(0 10px 14px rgba(60,30,10,.3)); }
+.btn { display:inline-flex; align-items:center; gap:10px; border:0; border-radius: 14px; background: var(--accent); color:#fff; font: 700 18px var(--f-ui); padding: 15px 24px; cursor:pointer; box-shadow: 0 14px 28px -14px rgba(216,52,76,.8); transition: transform .15s, filter .15s; }
+.btn:hover { filter: brightness(1.07); transform: translateY(-1px); } .btn:active { transform: scale(.98); }
+.btn[disabled] { opacity:.75; cursor: progress; }
+.small { font-size: 13px; color: var(--mute); margin-top: 10px; }
+.bar { height: 10px; border-radius: 99px; background: var(--paper-2); overflow:hidden; margin-top: 14px; display:none; max-width: 420px; border:1px solid var(--line); }
+.bar i { display:block; height:100%; width:0; background: linear-gradient(90deg, var(--gold), var(--accent)); transition: width .2s; }
+.status { font-size: 14px; font-weight: 600; margin-top: 8px; min-height: 22px; }
+.cards { display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; margin-top: 40px; }
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; box-shadow: 0 18px 40px -30px rgba(60,30,10,.6); }
+.card h3 { font-family: var(--f-display); margin: 0 0 6px; font-size: 19px; }
+.card p { margin: 0; color: var(--mute); font-size: 14.5px; }
+h2 { font-family: var(--f-display); font-size: 28px; margin: 44px 0 12px; }
+ol.steps { padding-left: 22px; display:grid; gap: 8px; margin: 0; }
+ol.steps b { color: var(--ink); }
+.note { border-left: 3px solid var(--gold); padding: 8px 14px; background: var(--paper-2); border-radius: 0 10px 10px 0; font-size: 14.5px; margin-top: 14px; }
+footer { margin-top: 48px; font-size: 13px; color: var(--mute); text-align:center; }
+footer a { color: var(--gold-hi); }
+.theme { position: fixed; top: 12px; right: 12px; border:1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 12px; width: 40px; height: 40px; cursor:pointer; font-size: 18px; }
+@media (max-width: 700px) { .hero { grid-template-columns: minmax(0,1fr); } .stage { height: 220px; order: -1; } .stage .leo-dock { width: 140px; right: 20%; } .stage .g { width: 100px; left: 12%; } .cards { grid-template-columns: minmax(0,1fr); } }
+.leo { width: 100%; height: auto; display: block; overflow: visible; filter: drop-shadow(0 8px 14px rgba(0,0,0,0.35)); }
+.l-shadow { fill: rgba(0,0,0,0.28); transform-origin: 100px 198px; animation: l-shadow 3s ease-in-out infinite; }
+.l-all { transform-origin: 100px 190px; }
+.l-body { transform-origin: 100px 186px; animation: l-breathe 3s ease-in-out infinite; }
+.l-head { transform-origin: 100px 124px; transform: translate(var(--lx), var(--ly)) rotate(var(--tilt)); transition: transform .35s ease-out, rotate .5s cubic-bezier(.3,1.4,.5,1), translate .4s; }
+.l-tail { transform-origin: 134px 140px; animation: l-wag var(--wag, .45s) ease-in-out infinite alternate; }
+.l-ear { transition: transform .4s cubic-bezier(.3,1.4,.5,1); }
+.l-ear-l { transform-origin: 80px 54px; } .l-ear-r { transform-origin: 120px 54px; }
+.l-blink { transform-box: fill-box; transform-origin: center; animation: l-blink 4.6s infinite; }
+.l-cheek { fill: #f6a8b0; opacity: .45; transition: opacity .4s; }
+.l-brows path { stroke: #2a211b; stroke-width: 2.4; fill: none; stroke-linecap: round; opacity: 0; transition: opacity .3s; }
+.l-eyes, .l-mouth, .l-ball-mouth { opacity: 0; transition: opacity .18s; }
+.l-tongue { transform-box: fill-box; transform-origin: top center; animation: l-pant .32s ease-in-out infinite alternate; }
+.l-tear { animation: l-tear 2.4s ease-in infinite; }
+/* moods */
+[data-mood="happy"] .l-eyes-open, [data-mood="happy"] .l-mouth-open { opacity: 1; }
+[data-mood="excited"] .l-eyes-happy, [data-mood="excited"] .l-mouth-open { opacity: 1; }
+[data-mood="excited"] { --wag: .16s; }
+[data-mood="excited"] .l-all { animation: l-bounce .42s ease-in-out infinite; }
+[data-mood="excited"] .l-ear { transform: rotate(0deg) translateY(-3px); }
+[data-mood="love"] .l-eyes-love, [data-mood="love"] .l-mouth-open { opacity: 1; }
+[data-mood="love"] { --wag: .26s; } [data-mood="love"] .l-cheek { opacity: .95; }
+[data-mood="love"] .l-eyes-love { transform-box: fill-box; transform-origin: center; animation: l-throb .6s ease-in-out infinite; }
+[data-mood="hungry"] .l-eyes-sad, [data-mood="hungry"] .l-mouth-sad, [data-mood="sad"] .l-eyes-sad, [data-mood="sad"] .l-mouth-sad { opacity: 1; }
+[data-mood="hungry"] .l-brows path, [data-mood="sad"] .l-brows path { opacity: 1; }
+[data-mood="hungry"] .l-brows path:first-child, [data-mood="sad"] .l-brows path:first-child { transform: rotate(-16deg) translateY(-2px); transform-box: fill-box; transform-origin: right; }
+[data-mood="hungry"] .l-brows path:last-child, [data-mood="sad"] .l-brows path:last-child { transform: rotate(16deg) translateY(-2px); transform-box: fill-box; transform-origin: left; }
+[data-mood="hungry"], [data-mood="sad"] { --wag: 1.6s; }
+[data-mood="hungry"] .l-ear-l, [data-mood="sad"] .l-ear-l { transform: rotate(-24deg); }
+[data-mood="hungry"] .l-ear-r, [data-mood="sad"] .l-ear-r { transform: rotate(24deg); }
+[data-mood="hungry"] .l-tail, [data-mood="sad"] .l-tail { animation-name: l-wag-small; }
+[data-mood="sad"] .l-tear { opacity: 1; } [data-mood="hungry"] .l-tear { display: none; }
+[data-mood="sleepy"] .l-eyes-sleep, [data-mood="sleepy"] .l-mouth-smile { opacity: 1; }
+[data-mood="sleepy"] .l-tail { animation: none; transform: rotate(18deg); }
+[data-mood="sleepy"] .l-head { rotate: 8deg; translate: 0 6px; transform: none; }
+[data-mood="sleepy"] .l-body { animation-duration: 4.6s; }
+[data-mood="sleepy"] .l-ear-l { transform: rotate(-16deg); } [data-mood="sleepy"] .l-ear-r { transform: rotate(16deg); }
+[data-mood="curious"] .l-eyes-open, [data-mood="curious"] .l-mouth-o { opacity: 1; }
+[data-mood="curious"] .l-head { rotate: -12deg; }
+[data-mood="curious"] .l-ear-r { transform: rotate(-10deg) translateY(-3px); }
+[data-mood="curious"] { --wag: .8s; }
+[data-mood="curious"] .l-brows path:first-child { opacity: 1; transform: translateY(-4px); }
+[data-mood="eating"] .l-eyes-happy { opacity: 1; }
+[data-mood="eating"] .l-mouth-o { animation: l-chomp .32s steps(1) infinite; }
+[data-mood="eating"] .l-mouth-smile { animation: l-chomp .32s steps(1) infinite reverse; }
+[data-mood="eating"] { --wag: .22s; }
+.leo-dock.eat .l-head { translate: -14px 16px; rotate: -10deg; }
+.leo-dock.has-ball .l-ball-mouth { opacity: 1; }
+.leo-dock.has-ball .l-mouth { opacity: 0 !important; }
+.leo-dock.run .l-all { animation: l-trot .26s ease-in-out infinite; }
+.leo-dock.flip .leo { transform: scaleX(-1); }
+.leo-dock.hop .leo-btn { animation: l-hop .5s cubic-bezier(.3,.7,.4,1.3); }
+@keyframes l-wag { from { transform: rotate(-11deg); } to { transform: rotate(13deg); } }
+@keyframes l-wag-small { from { transform: rotate(-3deg); } to { transform: rotate(4deg); } }
+@keyframes l-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.015, 1.035); } }
+@keyframes l-shadow { 0%, 100% { transform: scaleX(1); } 50% { transform: scaleX(1.04); } }
+@keyframes l-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.08); } }
+@keyframes l-pant { from { transform: scaleY(0.85); } to { transform: scaleY(1.12); } }
+@keyframes l-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes l-trot { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-7px) rotate(-3deg); } }
+@keyframes l-hop { 40% { transform: translateY(-22px) scale(1.04, 0.97); } 70% { transform: translateY(0) scale(1.05, 0.94); } }
+@keyframes l-throb { 50% { transform: scale(1.18); } }
+@keyframes l-chomp { 0% { opacity: 1; } 50% { opacity: 0; } }
+@keyframes l-tear { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(16px); opacity: 0; } }
+.leo-fx { position: absolute; inset: 0; pointer-events: none; }
+.lfx { position: absolute; bottom: 62%; font-size: 18px; animation: l-float 2s ease-out both; }
+.lfx.z { font-family: var(--f-display); font-weight: 700; color: var(--gold-hi); font-size: 20px; }
+.lfx.crumb { bottom: 20%; color: #a0603a; font-size: 22px; }
+@keyframes l-float { from { transform: translate(0, 0) scale(.6); opacity: 0; } 15% { opacity: 1; } to { transform: translate(var(--dx), -90px) scale(1.1); opacity: 0; } }
+.leo-bowl { position: absolute; left: -46px; bottom: 4px; width: 62px; opacity: 0; transform: translateY(14px); transition: opacity .35s, transform .45s cubic-bezier(.3,1.5,.5,1); pointer-events: none; }
+.leo-bowl.show { opacity: 1; transform: none; }
+.leo-bowl .kib { opacity: 0; transform: translateY(-40px); transition: transform .5s cubic-bezier(.4,1.6,.6,1) .25s, opacity .2s .25s; }
+.leo-bowl.fill .kib { opacity: 1; transform: none; }
+.leo-bowl.eaten .kib { opacity: 0; transition: opacity 1.4s; transform: none; }
+.bruno { display: block; width: 100%; height: auto; overflow: visible; filter: drop-shadow(0 6px 10px rgba(0,0,0,.25)); }
+.bruno-dock.flip .bruno { transform: scaleX(-1); }
+.b-tail { transform-origin: 160px 150px; animation: b-wag .5s ease-in-out infinite alternate; }
+.bruno-dock.happy .b-tail, .bruno-dock.walking .b-tail { animation-duration: .16s; }
+.b-head { transform-origin: 110px 110px; animation: b-look 6s ease-in-out infinite; }
+.b-ear { transform-box: fill-box; transform-origin: 50% 100%; }
+.bruno-dock.happy .b-ear { animation: b-ear .3s ease-in-out 3 alternate; }
+.b-blink { opacity: 0; } .bruno-dock.blink .b-blink { opacity: 1; } .bruno-dock.blink .b-eyes { opacity: 0; }
+.b-tongue { transform-box: fill-box; transform-origin: 50% 0; animation: b-pant .35s ease-in-out infinite alternate; }
+.bruno-dock.walking .bruno-btn { animation: b-trot .28s ease-in-out infinite alternate; }
+.bruno-dock.walking .b-leg.l { animation: b-step .28s ease-in-out infinite alternate; }
+.bruno-dock.walking .b-leg.r { animation: b-step .28s ease-in-out infinite alternate-reverse; }
+.b-leg { transform-box: fill-box; transform-origin: 50% 0; }
+.bruno-dock.hop .bruno-btn { animation: l-hop .5s cubic-bezier(.3,.7,.4,1.3); }
+.bruno-bubble { position: absolute; left: 50%; bottom: calc(100% - 4px); translate: -50% 0; width: max-content; max-width: 210px; background: #17171b; color: #f4f1ea; border: 1px solid rgba(255,255,255,.15); border-radius: 14px; padding: 7px 11px; font-size: 13px; font-weight: 700; opacity: 0; transform: translateY(6px) scale(.9); transition: opacity .3s, transform .3s; pointer-events: none; }
+.bruno-bubble.show { opacity: 1; transform: none; }
+.bruno-bubble { translate: -86% -34px; } .bruno-dock.on-right .bruno-bubble { translate: -14% -34px; }
+.bruno-bubble::after { content: ""; position: absolute; top: 100%; right: 16%; border: 7px solid transparent; border-top-color: #17171b; }
+.bruno-dock.on-right .bruno-bubble::after { right: auto; left: 16%; }
+.bruno-heart { position: fixed; z-index: 31; font-size: 20px; pointer-events: none; animation: b-heart 1.4s ease-out forwards; }
+@keyframes b-wag { from { rotate: -10deg; } to { rotate: 14deg; } }
+@keyframes b-look { 0%, 70%, 100% { rotate: 0deg; } 78% { rotate: -6deg; } 88% { rotate: 5deg; } }
+@keyframes b-ear { to { transform: rotate(-8deg); } }
+@keyframes b-pant { from { transform: scaleY(.85); } to { transform: scaleY(1.12); } }
+@keyframes b-trot { from { translate: 0 0; } to { translate: 0 -5px; } }
+@keyframes b-step { from { transform: rotate(-14deg); } to { transform: rotate(14deg); } }
+.leo-dock.held { cursor: grabbing; } .leo-dock.held .leo { transform: rotate(-8deg) scale(1.06); filter: drop-shadow(0 22px 22px rgba(0,0,0,0.4)); }
+.leo-dock.held .l-all { animation: l-dangle .5s ease-in-out infinite alternate; }
+@keyframes l-dangle { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+.leo-dock.land .leo-btn { animation: l-land .5s cubic-bezier(.3,.7,.4,1.4); }
+@keyframes l-land { 30% { transform: scale(1.1, .86); } 60% { transform: scale(.96, 1.05); } }
+.leo-dock.side-left .leo-bubble { right: auto; left: 8px; border-radius: 16px 16px 16px 4px; transform-origin: bottom left; }
+.leo-dock.side-left .leo-bowl { left: auto; right: -46px; }
+.leo-dock.side-top .leo-bubble { bottom: auto; top: calc(100% - 4px); }
+.l-shades { opacity: 0; transform: translateY(-30px); transition: opacity .2s, transform .45s cubic-bezier(.3,1.5,.5,1); }
+[data-mood="cool"] .l-shades { opacity: 1; transform: none; }
+[data-mood="cool"] .l-eyes-open, [data-mood="cool"] .l-mouth-smile { opacity: 1; }
+[data-mood="cool"] .l-head { rotate: -6deg; }
+[data-mood="cool"] { --wag: .5s; }
+[data-mood="surprised"] .l-eyes-wide, [data-mood="surprised"] .l-mouth-o { opacity: 1; }
+[data-mood="surprised"] .l-ear { transform: translateY(-6px); }
+[data-mood="surprised"] .l-all { animation: l-jolt .4s ease-out; }
+[data-mood="surprised"] .l-tail { animation: none; transform: rotate(-6deg); }
+[data-mood="laughing"] .l-eyes-happy, [data-mood="laughing"] .l-mouth-laugh { opacity: 1; }
+[data-mood="laughing"] .l-head { animation: l-giggle .18s ease-in-out infinite alternate; }
+[data-mood="laughing"] .l-cheek { opacity: .9; }
+[data-mood="laughing"] { --wag: .2s; }
+[data-mood="shy"] .l-eyes-shy, [data-mood="shy"] .l-mouth-smile { opacity: 1; }
+[data-mood="shy"] .l-cheek { opacity: 1; transform-box: fill-box; transform-origin: center; transform: scale(1.35); }
+[data-mood="shy"] .l-head { rotate: 10deg; translate: 0 3px; }
+[data-mood="shy"] .l-ear-l { transform: rotate(-12deg); } [data-mood="shy"] .l-ear-r { transform: rotate(12deg); }
+[data-mood="shy"] { --wag: .9s; }
+[data-mood="grumpy"] .l-eyes-grumpy, [data-mood="grumpy"] .l-mouth-grr { opacity: 1; }
+[data-mood="grumpy"] .l-cheek { opacity: .8; fill: #f08b7b; transform-box: fill-box; transform-origin: center; transform: scale(1.3); }
+[data-mood="grumpy"] .l-ear-l { transform: rotate(14deg); } [data-mood="grumpy"] .l-ear-r { transform: rotate(-14deg); }
+[data-mood="grumpy"] .l-tail { animation: none; transform: rotate(10deg); }
+[data-mood="grumpy"] .l-all { animation: l-huff .5s ease-in-out 2; }
+[data-mood="dizzy"] .l-eyes-dizzy, [data-mood="dizzy"] .l-mouth-sad { opacity: 1; }
+[data-mood="dizzy"] .l-spin { transform-box: fill-box; transform-origin: center; animation: l-spin 1s linear infinite; }
+[data-mood="dizzy"] .l-head { animation: l-wobble 1.2s ease-in-out infinite; }
+[data-mood="dizzy"] .l-tail { animation: none; }
+[data-mood="playful"] .l-eyes-wink, [data-mood="playful"] .l-mouth-tongue { opacity: 1; }
+[data-mood="playful"] .l-head { rotate: -8deg; }
+[data-mood="playful"] { --wag: .2s; }
+.leo-dock.spin .leo { animation: l-twirl .9s cubic-bezier(.3,.7,.3,1); }
+.l-wavepaw { opacity: 0; transform-origin: 132px 150px; }
+.leo-dock.stand .l-all { animation: l-stand .5s cubic-bezier(.3,1.4,.5,1) both; }
+.leo-dock.stand .l-tail { animation: l-wag .14s ease-in-out infinite alternate; }
+.leo-dock.stand .l-wavepaw { opacity: 1; animation: l-wave .3s ease-in-out infinite alternate; }
+@keyframes l-stand { to { transform: translateY(-16px) rotate(-5deg) scaleY(1.05); } }
+.leo-dock.waving .l-wavepaw { opacity: 1; animation: l-wave .5s ease-in-out 4 alternate; }
+.leo-dock.enter { animation: l-enter 1.1s cubic-bezier(.2,.9,.3,1.2) both; }
+.leo-dock.crouch .l-all { transform: scale(1.04, .9); transition: transform .3s; }
+.leo-dock.pounce .l-all { transform: rotate(-12deg); transition: transform .2s; }
+@keyframes l-jolt { 30% { transform: translateY(-10px) scale(1.03); } }
+@keyframes l-giggle { from { rotate: -4deg; } to { rotate: 4deg; } }
+@keyframes l-huff { 50% { transform: scale(1.05, .96); } }
+@keyframes l-spin { to { transform: rotate(360deg); } }
+@keyframes l-wobble { 0%, 100% { rotate: -9deg; } 50% { rotate: 9deg; } }
+@keyframes l-twirl { to { transform: rotate(720deg); } }
+@keyframes l-wave { from { transform: rotate(-12deg); } to { transform: rotate(22deg); } }
+@keyframes l-enter { 0% { transform: translateY(160px) rotate(-8deg); opacity: 0; } 60% { transform: translateY(-16px) rotate(3deg); opacity: 1; } 100% { transform: none; } }
+
+.leo-dock { --lx:0px; --ly:0px; --tilt:0deg; }
+.b-tail { transform-origin: 160px 150px; animation: b-wag .5s ease-in-out infinite alternate; }
+@keyframes b-wag { from { rotate: -10deg; } to { rotate: 14deg; } }
+.b-tongue { transform-box: fill-box; transform-origin: 50% 0; animation: b-pant .35s ease-in-out infinite alternate; }
+@keyframes b-pant { from { transform: scaleY(.85); } to { transform: scaleY(1.12); } }
+.b-blink { opacity: 0; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<button class="theme" id="theme" aria-label="Switch light or dark">🌓</button>
+<main>
+  <section class="hero">
+    <div>
+      <h1>Meet <em>Leo</em>,<br>your desktop buddy.</h1>
+      <p class="lead">A small white Pomeranian who lives on your PC screen and helps you out: reminders, timers, to-do lists, notes, maths, weather, quick answers, and a nudge to drink water. Feed him, play fetch, and watch his best friend Guru drop by.</p>
+      <button class="btn" id="get" type="button">⬇ Download Leo for Windows</button>
+      <div class="bar" id="bar"><i id="fill"></i></div>
+      <div class="status" id="status" role="status"></div>
+      <div class="small">Free · Windows 10 or 11 · about 100 MB</div>
+    </div>
+    <div class="stage" aria-hidden="true">
+      <div class="g"><svg class="bruno" viewBox="0 0 220 220" aria-hidden="true"><ellipse cx="110" cy="208" rx="62" ry="8" fill="rgba(0,0,0,.22)"/><g class="b-tail"><path d="M158 150 C188 140 196 108 178 98 C166 92 156 104 166 112 C172 117 178 110 175 106" fill="none" stroke="#17171b" stroke-width="15" stroke-linecap="round"/></g><path d="M64 200 C58 160 70 124 110 118 C150 124 162 160 156 200 Z" fill="#17171b"/><path d="M94 132 C100 150 120 150 126 132 C124 160 118 180 110 186 C102 180 96 160 94 132Z" fill="#f4f1ea"/><g class="b-legs"><rect class="b-leg l" x="80" y="160" width="20" height="46" rx="10" fill="#2a2a31"/><rect class="b-leg r" x="120" y="160" width="20" height="46" rx="10" fill="#2a2a31"/><ellipse cx="90" cy="203" rx="12" ry="6" fill="#f4f1ea"/><ellipse cx="130" cy="203" rx="12" ry="6" fill="#f4f1ea"/></g><path d="M80 122 Q110 136 140 122 L140 130 Q110 144 80 130Z" fill="#e2701c"/><circle cx="110" cy="140" r="6" fill="#f2c94c" stroke="#a37a12" stroke-width="1.5"/><text x="110" y="143" font-size="7" text-anchor="middle" font-weight="700" fill="#6b4c00">G</text><g class="b-head"><g class="b-ear el"><path d="M70 58 L58 4 L100 40 Z" fill="#17171b"/><path d="M73 50 L65 16 L92 40 Z" fill="#5a3b3b"/></g><g class="b-ear er"><path d="M150 58 L162 4 L120 40 Z" fill="#17171b"/><path d="M147 50 L155 16 L128 40 Z" fill="#5a3b3b"/></g><ellipse cx="110" cy="72" rx="44" ry="40" fill="#17171b"/><path d="M86 84 C88 112 132 112 134 84 C128 76 92 76 86 84Z" fill="#2a2a31"/><path d="M104 90 C106 104 114 104 116 90 Z" fill="#f4f1ea" opacity=".9"/><ellipse cx="92" cy="54" rx="6" ry="4" fill="#a8743f"/><ellipse cx="128" cy="54" rx="6" ry="4" fill="#a8743f"/><g class="b-eyes"><ellipse cx="93" cy="66" rx="7" ry="8" fill="#6b3d12"/><ellipse cx="127" cy="66" rx="7" ry="8" fill="#6b3d12"/><circle cx="93" cy="67" r="4.2" fill="#0b0b0d"/><circle cx="127" cy="67" r="4.2" fill="#0b0b0d"/><circle cx="95" cy="64" r="1.8" fill="#fff"/><circle cx="129" cy="64" r="1.8" fill="#fff"/></g><g class="b-blink"><path d="M86 66 q7 5 14 0" stroke="#0b0b0d" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M120 66 q7 5 14 0" stroke="#0b0b0d" stroke-width="2.5" fill="none" stroke-linecap="round"/></g><ellipse cx="110" cy="88" rx="8" ry="5.5" fill="#0b0b0d"/><ellipse cx="108" cy="86.5" rx="2.5" ry="1.4" fill="#555"/><path d="M110 93 v5 M110 98 q-7 6 -12 1 M110 98 q7 6 12 1" stroke="#0b0b0d" stroke-width="2" fill="none" stroke-linecap="round"/><path class="b-tongue" d="M104 101 q6 15 12 0 q-6 3 -12 0z" fill="#e87d8d"/></g></svg></div>
+      <div class="leo-dock" data-mood="happy"><svg class="leo" viewBox="0 0 200 210" aria-hidden="true"><defs><radialGradient id="leo-fur" cx="45%" cy="35%" r="70%"><stop offset="0" stop-color="#fff"/><stop offset="0.75" stop-color="#fbf8f2"/><stop offset="1" stop-color="#efe7da"/></radialGradient><radialGradient id="leo-eye" cx="40%" cy="35%" r="65%"><stop offset="0" stop-color="#5a3b28"/><stop offset="0.55" stop-color="#2a1a12"/><stop offset="1" stop-color="#120a06"/></radialGradient></defs><ellipse class="l-shadow" cx="100" cy="198" rx="58" ry="8"/><g class="l-all"><g class="l-tail"><ellipse cx="150" cy="118" rx="22" ry="18" fill="#e9e1d4"/><circle cx="170.2" cy="118.0" r="8.6" fill="#e9e1d4"/><circle cx="165.5" cy="128.6" r="10.0" fill="#e9e1d4"/><circle cx="153.5" cy="134.3" r="9.4" fill="#e9e1d4"/><circle cx="139.9" cy="132.3" r="8.8" fill="#e9e1d4"/><circle cx="131.0" cy="123.7" r="10.2" fill="#e9e1d4"/><circle cx="131.0" cy="112.3" r="9.6" fill="#e9e1d4"/><circle cx="139.9" cy="103.7" r="9.0" fill="#e9e1d4"/><circle cx="153.5" cy="101.7" r="10.4" fill="#e9e1d4"/><circle cx="165.5" cy="107.4" r="9.8" fill="#e9e1d4"/><ellipse cx="150" cy="116" rx="19" ry="15" fill="url(#leo-fur)"/><circle cx="166.7" cy="120.1" r="7.7" fill="url(#leo-fur)"/><circle cx="159.5" cy="127.6" r="9.0" fill="url(#leo-fur)"/><circle cx="147.8" cy="129.7" r="8.5" fill="url(#leo-fur)"/><circle cx="137.2" cy="125.4" r="7.9" fill="url(#leo-fur)"/><circle cx="132.5" cy="116.7" r="9.2" fill="url(#leo-fur)"/><circle cx="136.1" cy="107.7" r="8.6" fill="url(#leo-fur)"/><circle cx="146.1" cy="102.5" r="8.1" fill="url(#leo-fur)"/><circle cx="158.0" cy="103.7" r="9.4" fill="url(#leo-fur)"/><circle cx="166.1" cy="110.6" r="8.8" fill="url(#leo-fur)"/><ellipse cx="160" cy="98" rx="14" ry="12" fill="url(#leo-fur)"/><circle cx="172.9" cy="98.0" r="6.0" fill="url(#leo-fur)"/><circle cx="168.0" cy="106.6" r="7.0" fill="url(#leo-fur)"/><circle cx="157.1" cy="108.8" r="6.6" fill="url(#leo-fur)"/><circle cx="148.4" cy="102.8" r="6.2" fill="url(#leo-fur)"/><circle cx="148.4" cy="93.2" r="7.1" fill="url(#leo-fur)"/><circle cx="157.1" cy="87.2" r="6.7" fill="url(#leo-fur)"/><circle cx="168.0" cy="89.4" r="6.3" fill="url(#leo-fur)"/></g><g class="l-body"><ellipse cx="100" cy="150" rx="50" ry="40" fill="#e9e1d4"/><circle cx="146.0" cy="150.0" r="12.0" fill="#e9e1d4"/><circle cx="142.5" cy="164.1" r="14.0" fill="#e9e1d4"/><circle cx="132.5" cy="176.0" r="13.2" fill="#e9e1d4"/><circle cx="117.6" cy="184.0" r="12.3" fill="#e9e1d4"/><circle cx="100.0" cy="186.8" r="14.3" fill="#e9e1d4"/><circle cx="82.4" cy="184.0" r="13.4" fill="#e9e1d4"/><circle cx="67.5" cy="176.0" r="12.6" fill="#e9e1d4"/><circle cx="57.5" cy="164.1" r="14.6" fill="#e9e1d4"/><circle cx="54.0" cy="150.0" r="13.7" fill="#e9e1d4"/><circle cx="57.5" cy="135.9" r="12.9" fill="#e9e1d4"/><circle cx="67.5" cy="124.0" r="12.0" fill="#e9e1d4"/><circle cx="82.4" cy="116.0" r="14.0" fill="#e9e1d4"/><circle cx="100.0" cy="113.2" r="13.2" fill="#e9e1d4"/><circle cx="117.6" cy="116.0" r="12.3" fill="#e9e1d4"/><circle cx="132.5" cy="124.0" r="14.3" fill="#e9e1d4"/><circle cx="142.5" cy="135.9" r="13.4" fill="#e9e1d4"/><ellipse cx="100" cy="147" rx="46" ry="37" fill="url(#leo-fur)"/><circle cx="141.5" cy="153.8" r="11.2" fill="url(#leo-fur)"/><circle cx="135.1" cy="166.0" r="13.0" fill="url(#leo-fur)"/><circle cx="123.4" cy="175.4" r="12.2" fill="url(#leo-fur)"/><circle cx="108.1" cy="180.4" r="11.4" fill="url(#leo-fur)"/><circle cx="91.6" cy="180.4" r="13.3" fill="url(#leo-fur)"/><circle cx="76.4" cy="175.2" r="12.5" fill="url(#leo-fur)"/><circle cx="64.7" cy="165.8" r="11.7" fill="url(#leo-fur)"/><circle cx="58.5" cy="153.5" r="13.5" fill="url(#leo-fur)"/><circle cx="58.5" cy="140.2" r="12.7" fill="url(#leo-fur)"/><circle cx="64.9" cy="128.0" r="12.0" fill="url(#leo-fur)"/><circle cx="76.6" cy="118.6" r="11.2" fill="url(#leo-fur)"/><circle cx="91.9" cy="113.6" r="13.0" fill="url(#leo-fur)"/><circle cx="108.4" cy="113.6" r="12.2" fill="url(#leo-fur)"/><circle cx="123.6" cy="118.8" r="11.4" fill="url(#leo-fur)"/><circle cx="135.3" cy="128.2" r="13.3" fill="url(#leo-fur)"/><circle cx="141.5" cy="140.5" r="12.5" fill="url(#leo-fur)"/><ellipse cx="100" cy="132" rx="30" ry="20" fill="#fff"/><circle cx="127.5" cy="133.8" r="7.7" fill="#fff"/><circle cx="120.6" cy="144.2" r="9.0" fill="#fff"/><circle cx="105.9" cy="150.0" r="8.5" fill="#fff"/><circle cx="88.9" cy="148.8" r="7.9" fill="#fff"/><circle cx="76.2" cy="141.3" r="9.2" fill="#fff"/><circle cx="72.5" cy="130.2" r="8.6" fill="#fff"/><circle cx="79.4" cy="119.8" r="8.1" fill="#fff"/><circle cx="94.1" cy="114.0" r="9.4" fill="#fff"/><circle cx="111.1" cy="115.2" r="8.8" fill="#fff"/><circle cx="123.8" cy="122.7" r="8.3" fill="#fff"/><ellipse cx="82" cy="186" rx="13" ry="9" fill="#fff" stroke="#d9cdbb" stroke-width="1.2"/><ellipse cx="118" cy="186" rx="13" ry="9" fill="#fff" stroke="#d9cdbb" stroke-width="1.2"/><path d="M78 189v-4M83 190v-5M88 189v-4M114 189v-4M119 190v-5M124 189v-4" stroke="#d9cdbb" stroke-width="1.3" stroke-linecap="round"/></g><g class="l-collar"><path d="M66 121 Q100 137 134 121 L134 129 Q100 146 66 129Z" fill="#d8344c" stroke="#9e1f33" stroke-width="1"/><path d="M70 124 Q100 138 130 124" stroke="#f07a8a" stroke-width="1.4" fill="none" opacity=".7"/><circle cx="100" cy="142" r="6" fill="#f2c94c" stroke="#a37a12" stroke-width="1.4"/><text x="100" y="145" font-size="7" text-anchor="middle" font-weight="700" fill="#6b4c00">L</text></g><g class="l-wavepaw"><ellipse cx="150" cy="128" rx="12" ry="12" fill="#fff"/><circle cx="161.0" cy="128.0" r="5.2" fill="#fff"/><circle cx="156.9" cy="136.6" r="6.0" fill="#fff"/><circle cx="147.5" cy="138.8" r="5.6" fill="#fff"/><circle cx="140.1" cy="132.8" r="5.3" fill="#fff"/><circle cx="140.1" cy="123.2" r="6.1" fill="#fff"/><circle cx="147.5" cy="117.2" r="5.8" fill="#fff"/><circle cx="156.9" cy="119.4" r="5.4" fill="#fff"/><ellipse cx="153" cy="122" rx="9" ry="8" fill="#fff" stroke="#d9cdbb" stroke-width="1.2"/><path d="M148 118v4M153 117v5M158 118v4" stroke="#d9cdbb" stroke-width="1.2" stroke-linecap="round"/></g><g class="l-head"><g class="l-ear l-ear-l"><path d="M62 58 L70 18 Q74 14 80 22 L92 48 Z" fill="#fff" stroke="#d9cdbb" stroke-width="1.2"/><path d="M70 50 L73 27 L84 46 Z" fill="#f4c2c0"/></g><g class="l-ear l-ear-r"><path d="M138 58 L130 18 Q126 14 120 22 L108 48 Z" fill="#fff" stroke="#d9cdbb" stroke-width="1.2"/><path d="M130 50 L127 27 L116 46 Z" fill="#f4c2c0"/></g><ellipse cx="100" cy="82" rx="48" ry="42" fill="#e9e1d4"/><circle cx="144.2" cy="82.0" r="11.2" fill="#e9e1d4"/><circle cx="141.5" cy="95.2" r="13.0" fill="#e9e1d4"/><circle cx="133.8" cy="106.8" r="12.2" fill="#e9e1d4"/><circle cx="122.1" cy="115.5" r="11.4" fill="#e9e1d4"/><circle cx="107.7" cy="120.1" r="13.3" fill="#e9e1d4"/><circle cx="92.3" cy="120.1" r="12.5" fill="#e9e1d4"/><circle cx="77.9" cy="115.5" r="11.7" fill="#e9e1d4"/><circle cx="66.2" cy="106.8" r="13.5" fill="#e9e1d4"/><circle cx="58.5" cy="95.2" r="12.7" fill="#e9e1d4"/><circle cx="55.8" cy="82.0" r="12.0" fill="#e9e1d4"/><circle cx="58.5" cy="68.8" r="11.2" fill="#e9e1d4"/><circle cx="66.2" cy="57.2" r="13.0" fill="#e9e1d4"/><circle cx="77.9" cy="48.5" r="12.2" fill="#e9e1d4"/><circle cx="92.3" cy="43.9" r="11.4" fill="#e9e1d4"/><circle cx="107.7" cy="43.9" r="13.3" fill="#e9e1d4"/><circle cx="122.1" cy="48.5" r="12.5" fill="#e9e1d4"/><circle cx="133.8" cy="57.2" r="11.7" fill="#e9e1d4"/><circle cx="141.5" cy="68.8" r="13.5" fill="#e9e1d4"/><ellipse cx="100" cy="80" rx="45" ry="39" fill="url(#leo-fur)"/><circle cx="140.8" cy="86.1" r="10.3" fill="url(#leo-fur)"/><circle cx="135.9" cy="97.8" r="12.0" fill="url(#leo-fur)"/><circle cx="126.8" cy="107.4" r="11.3" fill="url(#leo-fur)"/><circle cx="114.3" cy="113.7" r="10.6" fill="url(#leo-fur)"/><circle cx="100.2" cy="115.9" r="12.2" fill="url(#leo-fur)"/><circle cx="86.0" cy="113.8" r="11.5" fill="url(#leo-fur)"/><circle cx="73.5" cy="107.6" r="10.8" fill="url(#leo-fur)"/><circle cx="64.2" cy="98.1" r="12.5" fill="url(#leo-fur)"/><circle cx="59.3" cy="86.4" r="11.8" fill="url(#leo-fur)"/><circle cx="59.2" cy="73.9" r="11.0" fill="url(#leo-fur)"/><circle cx="64.1" cy="62.2" r="10.3" fill="url(#leo-fur)"/><circle cx="73.2" cy="52.6" r="12.0" fill="url(#leo-fur)"/><circle cx="85.7" cy="46.3" r="11.3" fill="url(#leo-fur)"/><circle cx="99.8" cy="44.1" r="10.6" fill="url(#leo-fur)"/><circle cx="114.0" cy="46.2" r="12.2" fill="url(#leo-fur)"/><circle cx="126.5" cy="52.4" r="11.5" fill="url(#leo-fur)"/><circle cx="135.8" cy="61.9" r="10.8" fill="url(#leo-fur)"/><circle cx="140.7" cy="73.6" r="12.5" fill="url(#leo-fur)"/><ellipse cx="100" cy="92" rx="36" ry="26" fill="#fff"/><circle cx="132.1" cy="97.9" r="6.9" fill="#fff"/><circle cx="123.7" cy="108.7" r="8.0" fill="#fff"/><circle cx="108.9" cy="115.0" r="7.5" fill="#fff"/><circle cx="91.8" cy="115.2" r="7.0" fill="#fff"/><circle cx="76.9" cy="109.1" r="8.2" fill="#fff"/><circle cx="68.1" cy="98.5" r="7.7" fill="#fff"/><circle cx="67.9" cy="86.1" r="7.2" fill="#fff"/><circle cx="76.3" cy="75.3" r="8.3" fill="#fff"/><circle cx="91.1" cy="69.0" r="7.8" fill="#fff"/><circle cx="108.2" cy="68.8" r="7.4" fill="#fff"/><circle cx="123.1" cy="74.9" r="6.9" fill="#fff"/><circle cx="131.9" cy="85.5" r="8.0" fill="#fff"/><ellipse class="l-cheek" cx="72" cy="98" rx="8" ry="5"/><ellipse class="l-cheek" cx="128" cy="98" rx="8" ry="5"/><g class="l-brows"><path d="M74 70 q10 -6 18 2" /><path d="M126 70 q-10 -6 -18 2"/></g><g class="l-eyes l-eyes-open"><g class="l-blink"><ellipse cx="82" cy="84" rx="8.5" ry="9.5" fill="url(#leo-eye)"/><ellipse cx="118" cy="84" rx="8.5" ry="9.5" fill="url(#leo-eye)"/><circle cx="85" cy="80" r="3" fill="#fff"/><circle cx="121" cy="80" r="3" fill="#fff"/><circle cx="79.5" cy="88" r="1.4" fill="#fff" opacity=".8"/><circle cx="115.5" cy="88" r="1.4" fill="#fff" opacity=".8"/></g></g><g class="l-eyes l-eyes-happy"><path d="M74 86 q8 -10 16 0M110 86 q8 -10 16 0" stroke="#2a211b" stroke-width="3.2" fill="none" stroke-linecap="round"/></g><g class="l-eyes l-eyes-sleep"><path d="M74 85 q8 6 16 0M110 85 q8 6 16 0" stroke="#2a211b" stroke-width="3" fill="none" stroke-linecap="round"/></g><g class="l-eyes l-eyes-love"><path d="M82 92 l-8 -8 a4.6 4.6 0 0 1 8 -5 a4.6 4.6 0 0 1 8 5z M118 92 l-8 -8 a4.6 4.6 0 0 1 8 -5 a4.6 4.6 0 0 1 8 5z" fill="#e8506a"/></g><g class="l-eyes l-eyes-sad"><ellipse cx="82" cy="86" rx="8" ry="8.5" fill="url(#leo-eye)"/><ellipse cx="118" cy="86" rx="8" ry="8.5" fill="url(#leo-eye)"/><circle cx="84.5" cy="82.5" r="3.2" fill="#fff"/><circle cx="120.5" cy="82.5" r="3.2" fill="#fff"/><path class="l-tear" d="M76 95 q-3 5 0 7 q3 -2 0 -7z" fill="#9fd3f0"/></g><g class="l-eyes l-eyes-wide"><circle cx="82" cy="83" r="10.5" fill="#fff" stroke="#2a211b" stroke-width="1.6"/><circle cx="118" cy="83" r="10.5" fill="#fff" stroke="#2a211b" stroke-width="1.6"/><circle cx="82" cy="84" r="4.6" fill="#2a211b"/><circle cx="118" cy="84" r="4.6" fill="#2a211b"/><circle cx="83.5" cy="82" r="1.5" fill="#fff"/><circle cx="119.5" cy="82" r="1.5" fill="#fff"/></g><g class="l-eyes l-eyes-wink"><ellipse cx="82" cy="84" rx="8.5" ry="9.5" fill="url(#leo-eye)"/><circle cx="85" cy="80" r="3" fill="#fff"/><path d="M110 86 q8 -10 16 0" stroke="#2a211b" stroke-width="3.2" fill="none" stroke-linecap="round"/></g><g class="l-eyes l-eyes-dizzy" stroke="#2a211b" stroke-width="2.2" fill="none" stroke-linecap="round"><path class="l-spin" d="M82 84 m-1 0 a1 1 0 0 1 2 0 a3 3 0 0 1 -5 1 a5 5 0 0 1 8 -4 a7 7 0 0 1 -6 11"/><path class="l-spin" d="M118 84 m-1 0 a1 1 0 0 1 2 0 a3 3 0 0 1 -5 1 a5 5 0 0 1 8 -4 a7 7 0 0 1 -6 11"/></g><g class="l-eyes l-eyes-grumpy"><path d="M73 80 l18 5" stroke="#2a211b" stroke-width="2.6" stroke-linecap="round"/><path d="M127 80 l-18 5" stroke="#2a211b" stroke-width="2.6" stroke-linecap="round"/><ellipse cx="83" cy="89" rx="6.5" ry="5" fill="url(#leo-eye)"/><ellipse cx="117" cy="89" rx="6.5" ry="5" fill="url(#leo-eye)"/></g><g class="l-eyes l-eyes-shy"><path d="M74 87 q8 -7 16 0M110 87 q8 -7 16 0" stroke="#2a211b" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M66 100 l5 -4 M70 102 l5 -4 M125 96 l5 4 M129 98 l5 4" stroke="#e8798a" stroke-width="1.6" stroke-linecap="round"/></g><g class="l-shades"><path d="M66 78 h68" stroke="#111" stroke-width="3"/><path d="M68 77 h26 q1 14 -12 14 q-13 0 -14 -14z M106 77 h26 q-1 14 -14 14 q-13 0 -12 -14z" fill="#111"/><path d="M73 80 l6 6 M111 80 l6 6" stroke="#fff" stroke-width="2" opacity=".5" stroke-linecap="round"/></g><path d="M81 99 Q100 89 119 99 Q121 113 108 119 Q100 122 92 119 Q79 113 81 99Z" fill="#fff" stroke="#efe5d6" stroke-width="1.2"/><path d="M93 96 q7 -3 14 0 q-1 6 -7 8 q-6 -2 -7 -8z" fill="#2a211b"/><ellipse cx="98" cy="97.5" rx="2.4" ry="1.3" fill="#fff" opacity=".55"/><g class="l-mouth l-mouth-smile"><path d="M100 104 v3 M100 107 q-6 6 -11 1 M100 107 q6 6 11 1" stroke="#2a211b" stroke-width="2" fill="none" stroke-linecap="round"/></g><g class="l-mouth l-mouth-open"><path d="M100 104 v2 M88 107 q12 16 24 0 z" fill="#5a1f1f" stroke="#2a211b" stroke-width="1.8" stroke-linejoin="round"/><path class="l-tongue" d="M94 112 q6 14 12 0 q-6 3 -12 0z" fill="#f08a9a"/></g><g class="l-mouth l-mouth-sad"><path d="M100 104 v3 M91 113 q9 -7 18 0" stroke="#2a211b" stroke-width="2" fill="none" stroke-linecap="round"/></g><g class="l-mouth l-mouth-laugh"><path d="M86 106 q14 22 28 0 z" fill="#5a1f1f" stroke="#2a211b" stroke-width="1.8" stroke-linejoin="round"/><path d="M93 114 q7 9 14 0 q-7 2 -14 0z" fill="#f08a9a"/></g><g class="l-mouth l-mouth-grr"><path d="M100 104 v3 M89 112 q3.5 -3 7 0 q3.5 3 7 0 q3.5 -3 7 0" stroke="#2a211b" stroke-width="2" fill="none" stroke-linecap="round"/></g><g class="l-mouth l-mouth-tongue"><path d="M100 104 v3 M100 107 q-6 6 -11 1 M100 107 q6 6 11 1" stroke="#2a211b" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M101 109 q1 10 7 9 q4 -2 2 -10z" fill="#f08a9a" stroke="#d96b7d" stroke-width="1"/></g><g class="l-mouth l-mouth-o"><ellipse cx="100" cy="110" rx="4" ry="5" fill="#5a1f1f" stroke="#2a211b" stroke-width="1.6"/></g></g><g class="l-ball-mouth"><circle cx="100" cy="114" r="10" fill="#c8e05a" stroke="#8ea43a" stroke-width="1.2"/><path d="M91 110q9 7 18 0" stroke="#fff" stroke-width="1.5" fill="none"/></g></g></svg></div>
+    </div>
+  </section>
+
+  <div class="cards">
+    <div class="card"><h3>⏰ Never forget</h3><p>“Remind me to call Mum at 6 pm.” Timers, focus sessions, water and stretch breaks.</p></div>
+    <div class="card"><h3>✅ Stay on top</h3><p>To-do lists, notes, and a “plan my day” briefing with your weather.</p></div>
+    <div class="card"><h3>🧠 Gets smarter</h3><p>Learns your routines and suggests the right thing at the right time.</p></div>
+  </div>
+
+  <h2>How to install</h2>
+  <ol class="steps">
+    <li>Click <b>Download Leo for Windows</b> above and wait for <b>Leo-Setup.exe</b> to save.</li>
+    <li>Open your <b>Downloads</b> folder and double-click <b>Leo-Setup.exe</b>.</li>
+    <li>If Windows says “Windows protected your PC”, click <b>More info</b>, then <b>Run anyway</b>. Leo is new and not signed yet, so Windows doesn't know him.</li>
+    <li>Leo pops up at the bottom of your screen. Click him to say hi!</li>
+  </ol>
+  <div class="note">Tips: press <b>Ctrl+Shift+L</b> to talk to Leo from anywhere and <b>Ctrl+Shift+H</b> to hide him. Right-click him to feed him, play fetch or call Guru. Your notes and reminders stay on your own PC.</div>
+
+  <footer>Made with 🐾 by Dibson · <a href="../">DD Boys Travels</a></footer>
+</main>
+<script>
+(function () {
+  var PARTS = ["https://raw.githubusercontent.com/dibsondavis10602/dd-boys-travels/leo-installer/Leo-Setup.exe.part00", "https://raw.githubusercontent.com/dibsondavis10602/dd-boys-travels/leo-installer/Leo-Setup.exe.part01", "https://raw.githubusercontent.com/dibsondavis10602/dd-boys-travels/leo-installer/Leo-Setup.exe.part02"], SIZE = 104020714;
+  var btn = document.getElementById("get"), bar = document.getElementById("bar"), fill = document.getElementById("fill"), st = document.getElementById("status");
+  function mb(n) { return (n / 1048576).toFixed(0); }
+  btn.addEventListener("click", async function () {
+    btn.disabled = true; bar.style.display = "block"; st.textContent = "Getting Leo ready… 🐾";
+    try {
+      var got = 0, chunks = [];
+      for (var i = 0; i < PARTS.length; i++) {
+        var r = await fetch(PARTS[i]); if (!r.ok) throw new Error("HTTP " + r.status);
+        var rd = r.body.getReader();
+        for (;;) { var x = await rd.read(); if (x.done) break; chunks.push(x.value); got += x.value.length; fill.style.width = Math.min(100, 100 * got / SIZE) + "%"; st.textContent = "Downloading… " + mb(got) + " of " + mb(SIZE) + " MB"; }
+      }
+      if (got !== SIZE) throw new Error("size");
+      var url = URL.createObjectURL(new Blob(chunks, { type: "application/octet-stream" }));
+      var a = document.createElement("a"); a.href = url; a.download = "Leo-Setup.exe"; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+      st.textContent = "✓ Done! Open Leo-Setup.exe from your Downloads folder.";
+      btn.textContent = "⬇ Download again";
+    } catch (e) {
+      st.textContent = "The download didn't finish. Check your internet and try again.";
+    }
+    btn.disabled = false;
+  });
+  var t = document.getElementById("theme");
+  t.addEventListener("click", function () { var r = document.documentElement, dark = r.getAttribute("data-theme") ? r.getAttribute("data-theme") === "dark" : matchMedia("(prefers-color-scheme: dark)").matches; r.setAttribute("data-theme", dark ? "light" : "dark"); });
+})();
+</script>
+</body>
+</html>
